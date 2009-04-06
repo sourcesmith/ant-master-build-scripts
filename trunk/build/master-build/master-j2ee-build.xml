@@ -1,0 +1,457 @@
+<?xml version="1.0"?>
+<!--Do NOT alter this without discussing it with either Douglas Bullard or Justin Redd or Anil!!        -->
+<project name="master-j2ee" basedir=".." default="help">
+
+    <import file="master-build.xml"/>
+
+    <path id="classpath.dist-ear">
+        <fileset dir="${lib.ear}"/>
+    </path>
+
+    <path id="classpath.dist-war">
+        <fileset dir="${lib.war}"/>
+    </path>
+
+    <path id="classpath.compile">
+        <fileset dir="${lib.build}" includes="*.jar"/>
+        <fileset dir="${lib.container}"/>
+    </path>
+
+    <path id="classpath.test.run">
+        <!--Issues with multiple versions of dirs in classpath here..-->
+        <!--<pathelement path="${stage.war.classes.dir}"/>-->
+        <pathelement path="${junit.data.dir}"/>
+        <pathelement path="${config.data.dir}"/>
+        <fileset dir="${lib.container}"/>
+        <fileset dir="${lib.test}" includes="*.jar"/>
+    </path>
+
+    <path id="classpath.test.compile">
+        <!--We have to exclude the nikenet-om-classpath and nikenet-global-classpath jars, as -->
+        <!--they contain unconfigured properties files that get in the classpath and screw up our tests -->
+        <fileset dir="${lib.test}" includes="*.jar" excludes="*classpath.jar,*.dll"/>
+        <fileset dir="${lib.container}"/>
+    </path>
+
+    <validateProperty propertyName="lib.ear"/>
+    <validateProperty propertyName="lib.war"/>
+    <validateProperty propertyName="bin.dir"/>
+    <validateProperty propertyName="dist.jar.dir"/>
+    <validateProperty propertyName="ear.root.dir"/>
+    <validateProperty propertyName="stage.dir"/>
+    <validateProperty propertyName="tar.dir"/>
+    <validateProperty propertyName="tar.stage.dir"/>
+    <validateProperty propertyName="tar.stage.jsp.dir"/>
+    <validateProperty propertyName="war.classes.dir"/>
+    <validateProperty propertyName="war.jsp.dir"/>
+    <validateProperty propertyName="war.lib.dir"/>
+    <validateProperty propertyName="war.root.dir"/>
+    <validateProperty propertyName="check.for.jsps"/>
+
+    <!--override this for each app server's peculiar stuff-->
+    <macrodef name="doAppServerEarConfig">
+        <attribute name="stageRootDir" default=""/>
+        <sequential>
+            <echo level="verbose">    Macrodef::master-j2ee.doAppServerEarConfig</echo>
+        </sequential>
+    </macrodef>
+
+    <!--need to check for jsp links before deletion-->
+    <macrodef name="removeOldStagingDir">
+        <sequential>
+            <echo level="verbose">    Macrodef::master-j2ee.removeOldStagingDir</echo>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="buildJ2ee" description="Build the J2EE application in the staging directory">
+        <attribute name="earRootDir" default="${ear.root.dir}" description="The location of the EAR in source control"/>
+        <attribute name="stageRootDir" default="${stage.dir}" description="The base location of the stage dir (stage or tar area)"/>
+        <element name="jspCopyLogic" optional="no"
+                 description="Either the 'makeJspLinks' macrodef or 'copyJavaFiles' macrodef should be used here"/>
+        <element name="removeOldStageDirLogic" optional="no" description="Remove the JSP link if it exists, or else delete the files"/>
+        <sequential>
+            <property name="stageEarDir" value="@{stageRootDir}/${app.name}.ear"/>
+            <property name="stageEjbRootDir" value="${stageEarDir}/${app.name}-ejb.jar"/>
+            <property name="stageEjbLibDir" value="${stageEarDir}/lib"/>
+            <property name="stageEjbClassesDir" value="${stageEjbRootDir}"/>
+            <property name="stageWarDir" value="${stageEarDir}/${app.name}.war"/>
+            <property name="stageJspDir" value="${stageWarDir}/WEB-INF/jsp"/>
+            <property name="stageWarClassesDir" value="${stageWarDir}/WEB-INF/classes"/>
+            <property name="stageWarLibDir" value="${stageWarDir}/WEB-INF/lib"/>
+            <property name="stageJarDir" value="@{stageRootDir}/jar"/>
+            <echo level="verbose">    Macrodef::master-j2ee.buildJ2ee
+                 :::earRootDir=         @{earRootDir}
+                 :::stageRootDir=       @{stageRootDir}
+                 :::stageEarDir=        ${stageEarDir}
+                 :::stageEjbRootDir=    ${stageEjbRootDir}
+                 :::stageEjbLibDir=     ${stageEjbLibDir}
+                 :::stageEjbClassesDir= ${stageEjbClassesDir}
+                 :::stageWarClassesDir= ${stageWarClassesDir}
+                 :::stageWarLibDir=     ${stageWarLibDir}
+                 :::stageJspDir=        ${stageJspDir}
+                 :::stageJarDir=        ${stageJarDir}</echo>
+            <removeOldStageDirLogic/>
+            <doAppServerEarConfig stageRootDir="@{stageRootDir}"/>
+            <!--copy all ear stuff, except jsps-->
+            <!--copy stuff in war's classes dir - config files, etc -->
+            <copyFiles toDir="${stageWarClassesDir}" fromDir="${war.classes.dir}" overwrite="true"/>
+            <!--Now get rid of any property files that were copied, as native2ascii doesn't work if the files already exist-->
+            <delete>
+                <fileset dir="${stageWarClassesDir}" includes="**/${app.name}*.properties"/>
+            </delete>
+            <!--encode the property files to ascii-->
+            <native2ascii encoding="UTF8" src="${war.classes.dir}" dest="${stageWarClassesDir}" includes="**/${app.name}*.properties">
+                <mapper type="identity"/>
+            </native2ascii>
+            <copyJ2eeClassesToDirs/>
+            <!--copy libs-->
+            <copyFiles toDir="${stageWarLibDir}" fromDir="${lib.war}" failOnError="false"/>
+            <copyFiles toDir="${stageEjbLibDir}" fromDir="${lib.ear}" failOnError="false"/>
+            <!--everything except jsps-->
+
+            <!-- dgbtodo  - doesn't this overwrite proerty files as done above?-->
+            <copyFiles toDir="${stageEarDir}" fromDir="${ear.root.dir}" excludesBlock="**/jsp/**"/>
+
+            <!--copy all jsps-->
+            <jspCopyLogic/>
+
+            <!--create applet, if one exists-->
+            <packageApplet/>
+            <!--dgbtodo add an applet dir to this later-->
+
+            <!-- only copy applet if there's an applet to be copied-->
+            <!--todo - why is this necessary?-->
+            <if>
+                <available file="${stageWarDir}/applet" type="dir"/>
+                <then>
+                    <copyFiles toDir="${tar.stage.war.dir}/applet" fromDir="${stageWarDir}/applet"/>
+                </then>
+            </if>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="copyJ2eeClassesToDirs" description="copy Java classes to j2ee dirs">
+        <sequential>
+            <echo level="verbose">    Macrodef::master-j2ee.copyJ2eeClassesToDirs</echo>
+            <copyFiles toDir="${stageWarClassesDir}" fromDir="${compile.out.dir}"/>
+            <copyFiles toDir="${stageEjbClassesDir}" fromDir="${compile.out.dir}"/>
+        </sequential>
+    </macrodef>
+
+    <!--<target name="clean" description="Removes all files not in source control, cleans up j2ee stage area" depends="-init">-->
+    <target name="clean" description="Removes all files not in source control, cleans up j2ee stage area">
+        <echo level="verbose">Target::master-j2ee.clean</echo>
+        <ivybuildtasks/>
+        <cleanJ2ee/>
+        <echo level="verbose">Target::master-j2ee.clean after cleanJ2ee</echo>
+        <master.clean/>
+        <isJspDirThere/>
+    </target>
+
+    <macrodef name="cleanJ2ee" description="Remove the staged application from it's J2EE location. Also breaks the JSP links if present">
+        <attribute name="stageDir" default="${j2ee.stage.dir}"/>
+        <sequential>
+            <echo level="verbose">    Macrodef::master-j2ee.cleanJ2ee</echo>
+            <!--Note that we MUST do this first if we've got symlinks, else we'll delete the dirs from source controlled directory!-->
+            <breakLinks stageRootDir="@{stageDir}"/>
+            <!--now it's safe to do the clean-->
+            <echo>About to delete @{stageDir}</echo>
+            <!--this is giving us headaches on the build boxes if it's not set to ignore errors - thanks, ATG!!!-->
+            <delete dir="@{stageDir}" failonerror="false"/>
+            <isJspDirThere/>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="makeJspLinks" description="Create the link for JSP dir so the developers don't have to redeploy for JSP page changes">
+        <attribute name="j2eeStageDir"/>
+        <sequential>
+            <echo level="verbose">    Macrodef::master-j2ee.makeJspLinks</echo>
+            <property name="deployJspDir" value="@{j2eeStageDir}/${app.name}.ear/${app.name}.war/WEB-INF/jsp"/>
+            <echo>Creating a link from ${war.jsp.dir} to @{j2eeStageDir}.</echo>
+            <!--  Remove the JSP link. -->
+            <breakLink linkDir="${deployJspDir}"/>
+            <isJspDirThere/>
+            <!--Delete the dir if it still exists-->
+            <delete dir="${deployJspDir}" failonerror="false"/>
+            <isJspDirThere/>
+            <!--now, make the link-->
+            <makeLink fromDir="${war.jsp.dir}" linkDir="${deployJspDir}"/>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="breakLinks" description="Break any links created in the build process">
+        <attribute name="stageRootDir"/>
+        <sequential>
+            <echo level="verbose">    Macrodef::master-j2ee.breakLinks</echo>
+            <property name="stageJspDir" value="@{stageRootDir}/${app.name}.ear/${app.name}.war/WEB-INF/jsp"/>
+            <breakLink linkDir="${stageJspDir}"/>
+            <echo level="verbose">Still in breaklinks, checking for existence of source controlled JSPs</echo>
+            <isJspDirThere/>
+        </sequential>
+    </macrodef>
+
+    <target name="local-deploy" depends="compile"
+            description="Deploy the application into the application sever. Note this this is really just calling the buildJ2ee macrdef with the right args and then doing a configure">
+        <echo level="verbose">Target::master-j2ee.local-deploy j2ee.stage.dir is ${j2ee.stage.dir}</echo>
+        <master-j2ee.local-deploy/>
+        <echo>Local deploy complete</echo>
+    </target>
+
+    <macrodef name="master-j2ee.local-deploy"
+              description="Deploy the application into the application sever. Note this this is really just calling the buildJ2ee macrdef with the right args and then doing a configure">
+        <attribute name="j2eeStageDir" default="${j2ee.stage.dir}"/>
+        <attribute name="stageWarClassesDir" default="@{j2eeStageDir}/${app.name}.ear/${app.name}.war/WEB-INF/classes"/>
+        <attribute name="envstoreTarget" default="${j2ee.stage.dir}" description="The location envstore will be run against"/>
+        <sequential>
+            <echo level="verbose">    Macrodef::master-j2ee.local-deploy
+                 :::j2eeStageDir is         @{j2eeStageDir}
+                 :::stageWarClassesDir is   @{stageWarClassesDir}
+                 :::envstoreTarget is       @{envstoreTarget}</echo>
+            <buildJ2ee stageRootDir="@{j2eeStageDir}">
+                <jspCopyLogic>
+                    <makeJspLinks j2eeStageDir="@{j2eeStageDir}"/>
+                </jspCopyLogic>
+                <removeOldStageDirLogic>
+                    <breakLink linkDir="${stageWarDir}/WEB-INF/jsp"/>
+                    <isJspDirThere/>
+                    <!--OK, I'm mystified why I thought we had to delete the entire staging dir for a local deploy - it's almost-->
+                    <!--the same thing as doing a "clean".  So, I'm commenting this out, as I have to re-sign applet jars each time it's run otherwise-->
+                    <!--<delete dir="@{j2eeStageDir}" />-->
+                    <isJspDirThere/>
+                </removeOldStageDirLogic>
+            </buildJ2ee>
+            <!--copy any test data in test resources to the war classes for the in-container tests -->
+            <copyFiles toDir="@{stageWarClassesDir}" fromDir="${test.data.dir}"/>
+            <!--<buildInfo/>-->
+
+            <!--configure stage dir-->
+            <envstoreReplace target="@{envstoreTarget}"/>
+        </sequential>
+    </macrodef>
+
+    <target name="test-incontainer" depends="local-deploy,configure" description="Run the in-container unit tests">
+        <!--fail the build if the container is already running - indicates a failure of a previous build-->
+        <!--to shut it down properly-->
+        <echo level="verbose">Target::master-j2ee.test-incontainer</echo>
+        <stopContainer/>
+        <testForRunningContainer failMode="failIfRunning"/>
+        <if>
+            <isset property="testng"/>
+            <then>
+                <j2eeTestNG/>
+            </then>
+            <else>
+                <test-incontainer-junit/>
+            </else>
+        </if>
+    </target>
+
+    <macrodef name="j2eeTestNG" description="Runs tests for TestNG">
+        <sequential>
+            <echo level="verbose">Target::master-j2ee.j2eeTestNG</echo>
+            <available file="${testng.config.dir}/testng-incontainer.xml" property="testng-incontainer.xml_present"/>
+            <if>
+                <isset property="testng-incontainer.xml_present"/>
+                <then>
+                    <echo>Running in-container tests with file ${testng.config.dir}/testng-incontainer.xml</echo>
+                    <stopContainer/>
+                    <testForRunningContainer failMode="failIfRunning"/>
+                    <parallel>
+                        <!--This should make the container die when Ant quits if the "stopconainer" call fails-->
+                        <daemons>
+                            <startContainer/>
+                        </daemons>
+                        <sequential>
+                            <trycatch>
+                                <try>
+                                    <sleep seconds="90"/>
+                                    <!--fail the build if the container isn't running-->
+                                    <testForRunningContainer failMode="failIfStopped"/>
+                                    <testTestNG configFile="testng-incontainer.xml" outputDir="test-output-incontainer"/>
+                                </try>
+                                <finally>
+                                    <stopContainer/>
+                                </finally>
+                            </trycatch>
+                        </sequential>
+                    </parallel>
+                </then>
+                <else>
+                    <echo>File ${testng.config.dir}/testng-incontainer.xml doesn't exist, not running in-container unit tests!</echo>
+                </else>
+            </if>
+
+
+        </sequential>
+    </macrodef>
+
+    <macrodef name="test-incontainer-junit" description="Runs incontainer tests for junit">
+        <sequential>
+            <cleanDir dirName="${junit.doc.dir}"/>
+            <parallel>
+                <!--This should make the container die when Ant quits if the "stopconainer" call fails-->
+                <daemons>
+                    <startContainer/>
+                </daemons>
+                <sequential>
+                    <trycatch>
+                        <try>
+                            <sleep seconds="90"/>
+                            <!--fail the build if the container isn't running-->
+                            <testForRunningContainer failMode="failIfStopped"/>
+                            <junitBatch filesetDir="${test.src.incontainer.dir}"/>
+                        </try>
+                        <finally>
+                            <stopContainer/>
+                        </finally>
+                    </trycatch>
+                </sequential>
+            </parallel>
+            <junitReport/>
+        </sequential>
+    </macrodef>
+
+    <!--make the tarballs, do the copy-->
+    <target name="distribute" depends="clean,compile"
+            description="Deploy the application into the application sever. Note this this is really just calling the buildJ2ee macrdef with the right args and then tarrring it and copying it to the dist server">
+        <echo>Target::master-j2ee.distribute</echo>
+        <distribute>
+            <tarOperation>
+                <tarApp/>
+            </tarOperation>
+        </distribute>
+    </target>
+
+    <!--make the tarballs, do the copy-->
+    <target name="distribute-content" depends="clean,compile" description="Deploy the content into the application sever.">
+        <echo level="verbose">target::master-j2ee.distribute-content</echo>
+        <distribute>
+            <tarOperation>
+                <tarContent/>
+            </tarOperation>
+        </distribute>
+    </target>
+
+    <macrodef name="distribute">
+        <element name="tarOperation" description="The tar opertion to call (content, app)"/>
+        <sequential>
+            <echo level="verbose">    Macrodef::master-j2ee.distribute</echo>
+            <stageApp/>
+            <!--tar for server dist-->
+            <tarOperation/>
+            <generateMd5Sum destinationDir="${dist.dir}"/>
+            <!--copy to deploy dir-->
+            <mkdir dir="${distribution.dir}\${short.app.name}_${BaselineName}"/>
+            <copy todir="${distribution.dir}\${short.app.name}_${BaselineName}\" failonerror="true">
+                <fileset dir="${dist.dir}" includes="*.tar.gz*"/>
+            </copy>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="packageApplet" description="Create the applet. This is a placeholder macrodef, override if you need to use it">
+        <sequential>
+            <echo level="verbose">    Macrodef::master-j2ee.packageApplet</echo>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="stageApp" description="Stages the application">
+        <sequential>
+            <echo level="verbose">    Macrodef::master-j2ee.stageApp
+                 :::stageRootDir= ${tar.stage.dir}</echo>
+            <buildJ2ee stageRootDir="${tar.stage.dir}">
+                <removeOldStageDirLogic>
+                    <delete dir="${tar.stage.dir}"/>
+                </removeOldStageDirLogic>
+                <jspCopyLogic>
+                    <copyFiles toDir="${tar.stage.dir}/${app.name}.ear/${app.name}.war/WEB-INF/jsp" fromDir="${war.jsp.dir}"/>
+                </jspCopyLogic>
+            </buildJ2ee>
+            <fixcrlf srcdir="${tar.stage.dir}" includes="**/*.sh, **/*.ksh, **/*.properties, **/*.xml" eol="lf" eof="remove"
+                     encoding="UTF-8"></fixcrlf>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="tarApp" description="Tar the application">
+        <sequential>
+            <echo level="verbose">    Macrodef::master-j2ee.tarApp
+                 :::Tarring dir ${tar.stage.dir}
+                 :::to ${j2ee.tar.file}</echo>
+            <mkdir dir="${tar.dir}"/>
+            <buildInfo/>
+            <buildInfo dir="${tar.stage.dir}/${app.name}.ear/${app.name}.war/WEB-INF/classes" file="buildinfo.properties"/>
+            <buildInfo dir="${tar.stage.dir}/${app.name}.ear/${app.name}.war/WEB-INF" file="buildinfo.properties"/>
+            <includeServerConfigFiles/>
+            <listFiles/>
+            <generateListContent/>
+            <tar tarfile="${j2ee.tar.file}" longfile="warn" compression="gzip">
+                <tarfileset dir="${tar.stage.dir}" mode="755"/>
+            </tar>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="includeServerConfigFiles"
+              description="Empty macrodef, needed for distributing server config files with some application deploys.  Overridden for JBoss.">
+        <sequential/>
+    </macrodef>
+
+    <macrodef name="tarContent">
+        <sequential>
+            <echo level="verbose">    Macrodef::master-j2ee.tarContent
+                 :::Tarring dir     ${tar.stage.dir}
+                 :::to              ${j2ee.content.tar.file}
+                 :::manifest file:  ${content.manifest.file}</echo>
+            <mkdir dir="${tar.dir}"/>
+            <buildInfo/>
+            <listFiles/>
+            <generateListContent/>
+            <tar tarfile="${j2ee.content.tar.file}" longfile="warn" compression="gzip">
+                <tarfileset dir="${tar.stage.dir}" mode="755">
+                    <include name="**/classes/*.properties"/>
+                    <include name="**/classes/**/*ules.xml"/>
+                </tarfileset>
+            </tar>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="generateListContent"
+              description="Placeholder for content manifest. Only ATG apps use this now, and it seems redundant with list-files">
+        <sequential>
+            <echo level="verbose">    Macrodef::master-j2ee.tarContent</echo>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="copyJ2eeConfig" description="Copy any files from the ear classes or war/web-inf/clases dir to the config dir">
+        <sequential>
+            <echo level="verbose">    Macrodef::master-j2ee.copyJ2eeConfig</echo>
+                <copy todir="${config.data.dir}">
+                <fileset dir="${war.classes.dir}"/>
+            </copy>
+            <buildInfo dir="${config.data.dir}" file="buildinfo.properties"/>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="isJspDirThere" description="Make sure the JSP dir is still there, and throw out a warning when it's not">
+        <attribute name="checkForJsps" default="${check.for.jsps}" description="true/false, if true will check for existence of JSP files"/>
+        <attribute name="jspFile" default="${sample.jsp.file}" description="A JSP file to look for, so we know we're missing our JSPs"/>
+        <sequential>
+            <available property="jspFileExists" value="true" file="@{jspFile}"/>
+            <echo level="verbose">    Macrodef::master-j2ee.isJspDirThere - Testing for existence of @{jspFile}. Existence is: ${jsp.files.exist}</echo>
+            <if>
+                <equals arg1="${jspFileExists}" arg2="true"/>
+                <then>
+                    <echo level="verbose">    Macrodef::master-j2ee.isJspDirThere - The JSP file @{jspFile} still exists</echo>
+                </then>
+                <else>
+                    <!--fail the build-->
+                    <fail message="::The JSP file @{jspFile} is missing!!::"/>
+                </else>
+            </if>
+            <!--subsequent calls of this macrodef will fail if we don't clear this-->
+            <var name="jspFileExists" unset="true"/>
+        </sequential>
+    </macrodef>
+
+    <!--Enforces contract with child scripts, requires them to have the following targets-->
+    <target name="-j2eeEnforcer" depends="configure-container, distribute-container"/>
+    
+</project>
