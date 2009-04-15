@@ -1,4 +1,4 @@
-package com.nike.cdm.ant;
+package com.nurflugel.buildtasks;
 
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.BuildException;
