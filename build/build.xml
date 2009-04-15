@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<project name="buildtools" basedir=".." default="help">
+
+    <import file="master-build/master-build.xml"/>
+
+
+
+
+    <target name="testStuff" depends="-init">
+        <echo> is it ${safe}?</echo>
+    </target>
+
+    
+</project>
