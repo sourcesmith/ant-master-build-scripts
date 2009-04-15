@@ -1,3 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module relativePaths="true" classpath="eclipse" type="JAVA_MODULE" version="4" />
+<module relativePaths="true" classpath="eclipse" type="JAVA_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="IvyIDEA" name="IvyIDEA">
+      <configuration ivyFile="$MODULE_DIR$/build/ivy.xml" useProjectSettings="true" ivySettingsFile="" onlyResolveSelectedConfigs="true" />
+    </facet>
+  </component>
+</module>
 

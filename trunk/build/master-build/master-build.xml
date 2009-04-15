@@ -52,6 +52,25 @@
         </sequential>
     </macrodef>
 
+    <!--Validate the existance of a property.  Fail the build if it's not set.  We don't care what it is, as long as it exists-->
+    <macrodef name="validatePropertiesNew">
+        <attribute name="buildFile"/>
+        <attribute name="exceptions" default=""/>
+        <sequential>
+            <path id="classpath.ant.niketasks">
+                <pathelement location="${lib.build}/svnkit.jar"/>
+                <pathelement path="${unversioned.dir}/classes"/>
+            </path>
+            <taskdef name="validatePropertiesTask" classname="com.nike.cdm.ant.ValidatePropertiesTask" classpathref="classpath.ant.niketasks"/>
+             <!--<validatePropertiesTask buildFile="@{buildFile}" exceptions="@{exceptions}"/>-->
+            <echo> ::::::::::::::ant.file = ${ant.file} </echo>
+            <echo> ::::::::::::::missing property = ${dibble.dabble} </echo>
+            <!--<echoproperties />-->
+             <validatePropertiesTask />
+             <!--<validatePropertiesTask buildFile="${ant.file}" exceptions="@{exceptions}"/>-->
+        </sequential>
+    </macrodef>
+
     <!--validate project specific properties-->
     <!--<validateProperty propertyName="make.me.fail"/>-->
     <validateProperty propertyName="app.name" />
@@ -209,20 +228,23 @@
 
     <macrodef name="super.compile" description="    Macrodef to do the actual work of compilation-">
         <attribute name="excludes" default="" description="Classes/paths we don't want to compile" />
+        <attribute name="source" description="javac -source flag" default="${java.specification.version}"/>
+        <attribute name="target" description="javac -target flag" default="${java.specification.version}"/>
+        
         <sequential>
             <echo level="verbose">    Macrodef::master.super.compile</echo>
             <mkdir dir="${compile.out.dir}" />
-            <compileCode srcdir="${gen.src.dir}" classpathRef="classpath.compile" excludes="@{excludes}" />
-            <compileCode srcdir="${java.src.dir}" classpathRef="classpath.compile" excludes="@{excludes}" />
+            <compileCode srcdir="${gen.src.dir}" classpathRef="classpath.compile" excludes="@{excludes}" source="@{source}" target="@{target}"/>
+            <compileCode srcdir="${java.src.dir}" classpathRef="classpath.compile" excludes="@{excludes}" source="@{source}" target="@{target}"/>
             <if>
                 <isset property="testng" />
                 <then>
                     <echo>Compiling TestNG source dirs</echo>
-                    <compileCode srcdir="${testng.src.dir}" classpathRef="classpath.compile" excludes="@{excludes}" />
+                    <compileCode srcdir="${testng.src.dir}" classpathRef="classpath.compile" excludes="@{excludes}" source="@{source}" target="@{target}"/>
                 </then>
                 <else>
                     <echo>Compiling JUnit source dirs</echo>
-                    <compileCode type="sourcePaths" classpathRef="classpath.test.compile" excludes="@{excludes}">
+                    <compileCode type="sourcePaths" classpathRef="classpath.test.compile" excludes="@{excludes}" source="@{source}" target="@{target}">
                         <sourcePaths>
                             <src path="${test.src.dir}" />
                         </sourcePaths>
@@ -238,6 +260,8 @@
         <attribute name="includeAnt" default="false" description="Should we include the ant libraries?" />
         <attribute name="classpathRef" description="The classpath to use for compilation" />
         <attribute name="excludes" description="Classes/paths we don't want to compile" />
+        <attribute name="source" description="javac -source flag" default="${java.specification.version}"/>
+        <attribute name="target" description="javac -target flag" default="${java.specification.version}"/>
         <element name="sourcePaths" optional="yes" description="XML for sourcepaths - a series of src path='${src}' lines (substitue double quotes for single quotes" />
         <sequential>
             <echo level="verbose">    Macrodef::master.compileCode
@@ -245,7 +269,10 @@
                  :::type=           @{type}
                  :::includeAnt=     @{includeAnt}
                  :::classpathRef=   @{classpathRef}
-                 :::destdir=        ${compile.out.dir}</echo>
+                 :::destdir=        ${compile.out.dir}                 :::excludes=       @{excludes}
+                 :::source=         @{source}
+                 :::target=         @{target}
+            </echo>
             <mkdir dir="${compile.out.dir}" />
             <!--Stupid, but if these dirs don't exist, compiling the non-existant test dirs fail, and I don't want to turn of failure errors altogether.-->
             <!--Easiest to just create empty dirs if they don't already exist and prevent failures due to missing dirs-->
@@ -258,7 +285,7 @@
                     <if>
                         <equals arg1="${@{srcDir}_exists}" arg2="true" />
                         <then>
-                            <javac srcdir="@{srcdir}" classpathref="@{classpathRef}" destdir="${compile.out.dir}" debug="${compile.debug}" debugLevel="${compile.debugLevel}" deprecation="${compile.deprecation}" includeAntRuntime="@{includeAnt}" excludes="@{excludes}" optimize="${compile.optimize}">
+                            <javac srcdir="@{srcdir}" classpathref="@{classpathRef}" destdir="${compile.out.dir}" debug="${compile.debug}" debugLevel="${compile.debugLevel}" deprecation="${compile.deprecation}" includeAntRuntime="@{includeAnt}" excludes="@{excludes}" optimize="${compile.optimize}" source="@{source}" target="@{target}">
                             </javac>
                         </then>
                         <else>
@@ -268,7 +295,7 @@
                 </then>
                 <else>
                     <echo>Compiling source paths with classpath @{classpathRef}</echo>
-                    <javac classpathref="@{classpathRef}" destdir="${compile.out.dir}" debug="${compile.debug}" debugLevel="${compile.debugLevel}" deprecation="${compile.deprecation}" includeAntRuntime="@{includeAnt}" excludes="@{excludes}" optimize="${compile.optimize}">
+                    <javac classpathref="@{classpathRef}" destdir="${compile.out.dir}" debug="${compile.debug}" debugLevel="${compile.debugLevel}" deprecation="${compile.deprecation}" includeAntRuntime="@{includeAnt}" excludes="@{excludes}" optimize="${compile.optimize}" source="@{source}" target="@{target}">
                         <sourcePaths />
                     </javac>
                 </else>
@@ -817,13 +844,13 @@
         <echo level="verbose">Target::master.javadoc</echo>
         <cleanDir dirName="${javadoc.dir}" />
         <mkdir dir="${javadoc.dir}" />
-        <javadoc sourcepath="${java.src.dir}" destdir="${javadoc.dir}" packagenames="net.nurflugel.*, com.nurflugel.*" author="true" private="true" maxmemory="128m" use="true" version="true" ">
+        <javadoc sourcepath="${java.src.dir}" destdir="${javadoc.dir}" packagenames="net.nurflugel.*, com.nurflugel.*" author="true" private="true" maxmemory="128m" use="true" version="true"  >
             <classpath refid="classpath.compile" />
         </javadoc>
     </target>
 
     <macrodef name="generateMd5Sum" description="Generates checksums for distribution files">
-        <attribute name="destinationDir" default="${dist.dir}" />
+            <attribute name="destinationDir" default="${dist.dir}" />
         <attribute name="include" default="**/*.tar.gz" description="Files to be included" />
         <attribute name="exclude" default="**/*.sha1,**/*.md5,**/*.MD5" description="Files to be excluded" />
         <attribute name="fileext" default="MD5" description="The extension to use" />
