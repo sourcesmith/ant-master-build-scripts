@@ -6,12 +6,12 @@
   <ivyauthor name="Douglas Bullard" />
   <repository name="nurflugel-repository" url="http://www.nurflugel.com/Home/repository" ivys="true" artifacts="true" />
 </info>
-<configurations defaultconfmapping="build,dist,test->default">
-        <conf name="build"    visibility="public"  description="Dependencies only used during the build process." />
-        <conf name="dist"     visibility="private" description="Dependencies included in web app." />
-        <conf name="javadoc"  visibility="public"  description="Some libraries provide separate javadoc packages." />
-        <conf name="test"     visibility="private" description="Dependencies only used during unit testing." />
-        <conf name="source"   visibility="public"  description="Dependencies' source code packages." />
+<configurations defaultconfmapping="build,dist,test-&gt;default">
+        <conf name="build"   visibility="public"  description="Dependencies only used during the build process." />
+        <conf name="dist"    visibility="private" description="Dependencies included in web app." />
+        <conf name="javadoc" visibility="public"  description="Some libraries provide separate javadoc packages." />
+        <conf name="test"    visibility="private" description="Dependencies only used during unit testing." />
+        <conf name="source"  visibility="public"  description="Dependencies' source code packages." />
 </configurations>
 
 <publications>
@@ -21,14 +21,11 @@
 
 <dependencies>
 <!-- build -->
-    <dependency org="net.sf.ant-contrib"     name="ant-contrib"                        rev="1.0b2"                        conf="build,source" />
-    <dependency org="org.apache"  name="ant"  rev="1.7.0"  conf="build"/>
-    <dependency org="com.nurflugel" name="buildtasks" rev="1.0-SNAPSHOT"                  conf="build" />
-    <!--<dependency org="org.apache" name="struts" rev="1.3.8"                  conf="dist" />-->
+        <dependency org="net.sf.ant-contrib" name="ant-contrib" rev="1.0b2"        conf="build,source" />
+        <dependency org="org.apache"         name="ant"         rev="1.7.0"        conf="build" />
+        <dependency org="com.nurflugel"      name="buildtasks"  rev="1.0-SNAPSHOT" conf="build" />
 
 <!--main app-->
-
-
 
 </dependencies>
 </ivy-module>
