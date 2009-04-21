@@ -1,0 +1,10 @@
+       
+<ivy-module version="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
+	<info organisation="com.nurflugel" module="nurflugel-ivy" revision="2.1.0-rc1" status="milestone" publication="20090319213629" default="true"/>
+	<configurations>
+		<conf name="default" visibility="public"/>
+	</configurations>
+	<publications>
+		<artifact name="nurflugel-ivy" type="jar" ext="jar" conf="default"/>
+	</publications>
+</ivy-module>

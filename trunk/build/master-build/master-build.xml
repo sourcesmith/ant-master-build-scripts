@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--Do NOT alter this without discussing it with either Douglas Bullard or Justin Redd or Anil!!        -->
-<project name="master" basedir=".." default="help">
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="master" basedir=".." default="help">
 
     <!-- Access any environment variables -->
     <property environment="env" />
@@ -53,61 +53,61 @@
     </macrodef>
 
     <!--Validate the existance of a property.  Fail the build if it's not set.  We don't care what it is, as long as it exists-->
-    <!--<macrodef name="validatePropertiesNew">-->
+    <macrodef name="validatePropertiesNew">
         <!--<attribute name="buildFile"/>-->
-        <!--<attribute name="exceptions" default=""/>-->
-        <!--<sequential>-->
-            <!--<path id="classpath.buildtasks">-->
-                <!--<pathelement location="${lib.build}/svnkit.jar"/>-->
+        <attribute name="exceptions" default=""/>
+        <sequential>
+            <path id="classpath.buildtasks">
+                <pathelement location="${lib.build}/buildtasks.jar"/>
                 <!--<pathelement path="${unversioned.dir}/classes"/>-->
-            <!--</path>-->
-            <!--<taskdef name="validatePropertiesTask" classname="com.nurflugel.buildtasks.ValidatePropertiesTask" classpathref="classpath.buildtasks"/>-->
-             <!--<validatePropertiesTask buildFile="@{buildFile}" exceptions="@{exceptions}"/>-->
-            <!--<echo> ::::::::::::::ant.file = ${ant.file} </echo>-->
-            <!--<echo> ::::::::::::::missing property = ${dibble.dabble} </echo>-->
+            </path>
+            <taskdef name="validatePropertiesTask" classname="com.nurflugel.buildtasks.ValidatePropertiesTask" classpathref="classpath.buildtasks"/>
+             <validatePropertiesTask  exceptions="@{exceptions}"/>
+            <echo> ::::::::::::::ant.file = ${ant.file} </echo>
+            <!--<echo> ::::::::::::::missing property = @{dibble.dabble} </echo>-->
             <!--<echoproperties />-->
              <!--<validatePropertiesTask />-->
              <!--<validatePropertiesTask buildFile="${ant.file}" exceptions="@{exceptions}"/>-->
-        <!--</sequential>-->
-    <!--</macrodef>-->
+        </sequential>
+    </macrodef>
     <!---->
-           <!--<validatePropertiesNew buildFile="${basedir}/build/master-build/master-build.xml"-->
-                <!--exceptions="BaselineName, ivy.repository.url, desired.ivy.version.number, rmlinkout, envstore-load.localfile.dir, repositoryUrl, mklinkout, src, test.single"/>-->
+           <!--<validatePropertiesNew-->
+                <!--exceptions="BaselineName, ivy.repository.url, desired.ivy.version.number, rmlinkout, envstore-load.localfile.dir, repositoryUrl, mklinkout, src, test.single, testng.src.dir, nurflugel.deploy.dir, container, formal.app.name, buildtime, client.jar.dir, envstore.namespace, junit.data.dir"/>-->
 
     <!--validate project specific properties-->
     <!--<validateProperty propertyName="make.me.fail"/>-->
-    <validateProperty propertyName="app.name" />
-    <validateProperty propertyName="compile.debug" />
-    <validateProperty propertyName="compile.debugLevel" />
-    <validateProperty propertyName="compile.deprecation" />
-    <validateProperty propertyName="compile.optimize" />
-    <validateProperty propertyName="compile.out.dir" />
-    <validateProperty propertyName="dist.dir" />
-    <validateProperty propertyName="docs.dir" />
-    <validateProperty propertyName="envstore.file" />
-    <validateProperty propertyName="envstore.location" />
-    <validateProperty propertyName="envstore.update" />
+    <!--<validateProperty propertyName="app.name" />-->
+    <!--<validateProperty propertyName="compile.debug" />-->
+    <!--<validateProperty propertyName="compile.debugLevel" />-->
+    <!--<validateProperty propertyName="compile.deprecation" />-->
+    <!--<validateProperty propertyName="compile.optimize" />-->
+    <!--<validateProperty propertyName="compile.out.dir" />-->
+    <!--<validateProperty propertyName="dist.dir" />-->
+    <!--<validateProperty propertyName="docs.dir" />-->
+    <!--<validateProperty propertyName="envstore.file" />-->
+    <!--<validateProperty propertyName="envstore.location" />-->
+    <!--<validateProperty propertyName="envstore.update" />-->
     <!--<validateProperty propertyName="formal.app.name" />-->
-    <validateProperty propertyName="gen.src.dir" />
-    <validateProperty propertyName="ivy.dep.file" />
-    <validateProperty propertyName="ivy.jar.file" />
-    <validateProperty propertyName="ivy.showprogress" />
-    <validateProperty propertyName="java.src.dir" />
-    <validateProperty propertyName="javadoc.dir" />
-    <validateProperty propertyName="jaxb.test.dir" />
-    <validateProperty propertyName="junit.doc.dir" />
-    <validateProperty propertyName="lib.build" />
-    <validateProperty propertyName="lib.dir" />
-    <validateProperty propertyName="lib.test" />
-    <validateProperty propertyName="localenvstore.file" />
-    <validateProperty propertyName="module.root.dir" />
-    <validateProperty propertyName="project.name" />
-    <validateProperty propertyName="src.dir" />
-    <validateProperty propertyName="short.app.name" />
-    <validateProperty propertyName="generated.src.dir" />
-    <validateProperty propertyName="test.src.dir" />
-    <validateProperty propertyName="unversioned.dir" />
-    <validateProperty propertyName="testng.config.dir" />
+    <!--<validateProperty propertyName="gen.src.dir" />-->
+    <!--<validateProperty propertyName="ivy.dep.file" />-->
+    <!--<validateProperty propertyName="ivy.jar.file" />-->
+    <!--<validateProperty propertyName="ivy.showprogress" />-->
+    <!--<validateProperty propertyName="java.src.dir" />-->
+    <!--<validateProperty propertyName="javadoc.dir" />-->
+    <!--<validateProperty propertyName="jaxb.test.dir" />-->
+    <!--<validateProperty propertyName="junit.doc.dir" />-->
+    <!--<validateProperty propertyName="lib.build" />-->
+    <!--<validateProperty propertyName="lib.dir" />-->
+    <!--<validateProperty propertyName="lib.test" />-->
+    <!--<validateProperty propertyName="localenvstore.file" />-->
+    <!--<validateProperty propertyName="module.root.dir" />-->
+    <!--<validateProperty propertyName="project.name" />-->
+    <!--<validateProperty propertyName="src.dir" />-->
+    <!--<validateProperty propertyName="short.app.name" />-->
+    <!--<validateProperty propertyName="generated.src.dir" />-->
+    <!--<validateProperty propertyName="test.src.dir" />-->
+    <!--<validateProperty propertyName="unversioned.dir" />-->
+    <!--<validateProperty propertyName="testng.config.dir" />-->
     <!--<validateProperty propertyName="testng.src.dir" />-->
 
     <tstamp>
@@ -126,6 +126,9 @@
         <createTaskdefs />
         <property environment="env" />
         <mkdirs />
+        <validatePropertiesNew
+                        exceptions="BaselineName, ivy.repository.url, desired.ivy.version.number, rmlinkout, envstore-load.localfile.dir, repositoryUrl, mklinkout, src, test.single, testng.src.dir, nurflugel.deploy.dir, container, formal.app.name, buildtime, client.jar.dir, envstore.namespace, junit.data.dir"/>
+
     </target>
 
     <macrodef name="createTaskdefs" description="Create all the taskdefs needed for the build.">
@@ -139,22 +142,8 @@
                 <pathelement location="${lib.build}/commons-lang.jar" />
                 <pathelement location="${lib.build}/commons-collections.jar" />
             </path>
-            <!--<taskdef name="loadEnvstoreTask" classname="net.nurflugel.build.ant.task.LoadEnvstore" classpathref="classpath.ant.tasks" />-->
-            <!--<taskdef name="buildInfoTask" classname="net.nurflugel.build.ant.task.svn.BuildInfoTask" classpathref="classpath.ant.tasks" />-->
-            <!--<taskdef name="listContentFilesTask" classname="net.nurflugel.build.ant.task.ListFilesContentBuild" classpathref="classpath.ant.tasks" />-->
-            <!--<taskdef name="listFilesTask" classname="net.nurflugel.build.ant.task.ListFiles" classpathref="classpath.ant.tasks" />-->
-            <!--<taskdef name="ivyCheckoutTask" classname="net.nurflugel.build.ant.task.svn.IvyCheckoutTask" classpathref="classpath.ant.tasks" />-->
-            <!--<taskdef name="ivyCommitTask" classname="net.nurflugel.build.ant.task.svn.IvyCommitTask" classpathref="classpath.ant.tasks" />-->
-            <!--<taskdef name="ivyVersionFinderTask" classname="net.nurflugel.build.ant.task.svn.IvyVersionFinderTask" classpathref="classpath.ant.tasks" />-->
-            <!--<taskdef name="ivyVersionSelectorTask" classname="net.nurflugel.build.ant.task.svn.IvyVersionSelectorTask" classpathref="classpath.ant.tasks" />-->
-            <!--<taskdef name="validateChoicesTask" classname="net.nurflugel.build.ant.task.ValidateChoicesTask" classpathref="classpath.ant.tasks" />-->
         </sequential>
     </macrodef>
-
-    <target name="ivy" unless="noivy" description="Ivy brings in all jars for the project. If you want to skip this, run the build with '-Dnoivy=t'.">
-        <echo level="verbose">Target::master.ivy</echo>
-        <ivy />
-    </target>
 
     <macrodef name="showSystemInfo" description="Show the system information">
         <sequential>
@@ -169,12 +158,21 @@
         </sequential>
     </macrodef>
 
+    <target name="ivy" unless="noivy" description="Ivy brings in all jars for the project. If you want to skip this, run the build with '-Dnoivy=t'.">
+        <echo level="verbose">Target::master.ivy</echo>
+        <ivy />
+    </target>
+
     <macrodef name="ivy" description="Get all libraries from Ivy">
         <sequential>
             <echo level="verbose">    Macrodef::master.ivy</echo>
-            <taskdef resource="ivy-ant-taskdefs.properties" classpath="${ivy.jar.file}" />
-            <ivy-resolve file="${ivy.dep.file}" transitive="true" showprogress="${ivy.showprogress}" />
-            <ivy-retrieve sync="true" />
+            <path id="ivy.lib.path">
+                <fileset dir="${ivy.conf.dir}/ivy" includes="*.jar"/>
+            </path>
+            <taskdef resource="org/apache/ivy/ant/antlib.xml"
+                uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path" />
+            <ivy:resolve file="${ivy.dep.file}" transitive="true" showprogress="${ivy.showprogress}" />
+            <ivy:retrieve sync="true" />
             <!--make an empty container dir in case no container jars are specified.  This keeps the build scripts tidy, and keeps them -->
             <!--from failing if the container lib dir doesn't appear in the compile path.-->
             <mkdir dir="${lib.container}" />
@@ -189,9 +187,13 @@
     <macrodef name="ivybuildtasks" description="Get all libraries from Ivy needed to do the build">
         <sequential>
             <echo level="verbose">    Macrodef::master.ivybuildtasks</echo>
-            <taskdef resource="ivy-ant-taskdefs.properties" classpath="${ivy.jar.file}" />
-            <ivy-resolve file="${basedir}/build/ivy/buildivy.xml" transitive="true" showprogress="${ivy.showprogress}" />
-            <ivy-retrieve sync="true" />
+             <path id="ivy.lib.path">
+                <fileset dir="${ivy.conf.dir}/ivy" includes="*.jar"/>
+            </path>
+            <taskdef resource="org/apache/ivy/ant/antlib.xml"
+                uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path" />
+            <ivy:resolve file="${basedir}/build/ivy/buildivy.xml" transitive="true" showprogress="${ivy.showprogress}" />
+            <ivy:retrieve sync="true" />
             <createTaskdefs />
         </sequential>
     </macrodef>
