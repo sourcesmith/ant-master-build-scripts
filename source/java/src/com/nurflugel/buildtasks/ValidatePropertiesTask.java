@@ -8,9 +8,11 @@ import java.io.*;
 import java.util.*;
 
 
-/** Created by IntelliJ IDEA. User: douglasbullard Date: Apr 10, 2009 Time: 7:39:07 PM To change this template use File | Settings | File Templates. */
+/** Goes through Ant files and looks for missing properties.
+ * todo - make it ignore comments 
+  */
 public class ValidatePropertiesTask
-//{
+
         extends Task
 {
     private String exceptions="";
@@ -49,8 +51,6 @@ public class ValidatePropertiesTask
             throw new BuildException(e);
         }
 
-
-
         validateProject(theProject, properties, allDefinedProperties, notMissingProperties);
 
     }
@@ -84,7 +84,7 @@ public class ValidatePropertiesTask
 
     private void parseLineForProps(Set<String> properties, String line)
     {
-        while (line.contains("${"))
+        while (line.contains("${") && !line.trim().startsWith("<!"))
         {
             int firstIndex = line.indexOf("${");
             int secondIndex = line.indexOf("}", firstIndex);

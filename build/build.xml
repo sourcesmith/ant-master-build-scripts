@@ -1,13 +1,12 @@
 <?xml version="1.0"?>
 <project name="buildtools" basedir=".." default="help">
 
+    <!--<import file="master-build/master-j2ee-build.xml"/>-->
     <import file="master-build/master-build.xml"/>
 
 
-
-
-    <target name="testStuff" depends="-init">
-        <echo> is it ${safe}?</echo>
+    <target name="jar" depends="compile" description="Jars up the java classes into a jar for Ant tasks and distribution, also jars sources">
+        <jar  basedir="${compile.out.dir}" jarfile="${unversioned.dir}/dist/buildtasks.jar" />
     </target>
 
     
