@@ -7,8 +7,6 @@
 
     <import file="master-build.xml" />
 
-    <import file="master-build/master-build.xml"/>
-
     <validateProperty propertyName="webstart.dir"/>
     <validateProperty propertyName="lib.dist"/>
     <validateProperty propertyName="webstart.lib.dir"/>
