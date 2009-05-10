@@ -10,6 +10,6 @@ set LOCALCLASSPATH=%~dp0
 rem For debugging:
 rem set JAVA_ARGS=-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=50010
 
-java %JAVA_ARGS% -cp %LOCALCLASSPATH%;%CLASSPATH%;unversioned\lib\build\buildtasks.jar net.nike.build.WhenceJava %*
+java %JAVA_ARGS% -cp %LOCALCLASSPATH%;%CLASSPATH%;unversioned\lib\build\buildtasks.jar com.nurflugel.buildtasks.WhenceJava %*
 
 endlocal

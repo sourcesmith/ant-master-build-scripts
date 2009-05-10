@@ -698,7 +698,7 @@
         <attribute name="target" default="${generated.src.dir}" description="Output directory for generated sources." />
         <attribute name="readOnly" default="true" description="Whether generated files will be in read-only mode (true/false)." />
         <sequential>
-            <echo level="verbose">    Macrodef::master.nikeXjc
+            <echo level="verbose">    Macrodef::master.masterXjc
                  :::schema=     @{schema}
                  :::package=    @{package}
                  :::target=     @{target}
