@@ -27,7 +27,7 @@
     </path>
 
     <path id="classpath.test.compile">
-        <!--We have to exclude the nikenet-om-classpath and nikenet-global-classpath jars, as -->
+        <!--We have to exclude the classpath and global-classpath jars, as -->
         <!--they contain unconfigured properties files that get in the classpath and screw up our tests -->
         <fileset dir="${lib.test}" includes="*.jar" excludes="*classpath.jar,*.dll"/>
         <fileset dir="${lib.container}"/>

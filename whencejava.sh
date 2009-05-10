@@ -10,4 +10,4 @@ export JAVA_HOME
 export ANT_OPTS=-Xmx640m
 
 set CLASSPATH=.:unversioned/lib/build/buildtasks.jar
-java  net.nike.build.WhenceJava $*
+java  com.nurflugel.buildtasks.WhenceJava $*
