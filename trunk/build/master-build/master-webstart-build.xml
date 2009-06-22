@@ -52,12 +52,13 @@
 
     <macrodef name="updateVersion" description="Updates the version of a file.">
         <attribute name="type" description="Minor, Point, or Major"/>
+        <attribute name="versionClass" default="${version.class}" description="Class with the versoin field in it"/>
         <sequential>
             <echo>::target updateVersion
                 :::type=@{type}
             </echo>
             <versionupdate srcdir="${java.src.dir}"
-                           classname="com.nurflugel.common.ui.Version"
+                           classname="@{versionClass}"
                            variablename="VERSION"
                            debug="true"
                            versionupdatetype="@{type}">
