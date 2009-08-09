@@ -222,12 +222,12 @@
         <attribute name="excludes" default="" description="Classes/paths we don't want to compile" />
         <attribute name="source" description="javac -source flag" default="${java.specification.version}"/>
         <attribute name="target" description="javac -target flag" default="${java.specification.version}"/>
-        
+        <attribute name="useJavac2" description="if true, use the javac2 compiler from JetBrains" default="false"/>
         <sequential>
             <echo level="verbose">    Macrodef::master.super.compile</echo>
             <mkdir dir="${compile.out.dir}" />
-            <compileCode srcdir="${gen.src.dir}" classpathRef="classpath.compile" excludes="@{excludes}" source="@{source}" target="@{target}"/>
-            <compileCode srcdir="${java.src.dir}" classpathRef="classpath.compile" excludes="@{excludes}" source="@{source}" target="@{target}"/>
+            <compileCode srcdir="${gen.src.dir}" classpathRef="classpath.compile" excludes="@{excludes}" source="@{source}" target="@{target}" useJavac2="@{useJavac2}"/>
+            <compileCode srcdir="${java.src.dir}" classpathRef="classpath.compile" excludes="@{excludes}" source="@{source}" target="@{target}" useJavac2="@{useJavac2}"/>
             <if>
                 <isset property="testng" />
                 <then>
@@ -254,6 +254,7 @@
         <attribute name="excludes" description="Classes/paths we don't want to compile" />
         <attribute name="source" description="javac -source flag" default="${java.specification.version}"/>
         <attribute name="target" description="javac -target flag" default="${java.specification.version}"/>
+        <attribute name="useJavac2" description="if true, use the javac2 compiler from JetBrains" default="false"/>
         <element name="sourcePaths" optional="yes" description="XML for sourcepaths - a series of src path='${src}' lines (substitue double quotes for single quotes" />
         <sequential>
             <echo level="verbose">    Macrodef::master.compileCode
@@ -277,8 +278,15 @@
                     <if>
                         <equals arg1="${@{srcDir}_exists}" arg2="true" />
                         <then>
-                            <javac srcdir="@{srcdir}" classpathref="@{classpathRef}" destdir="${compile.out.dir}" debug="${compile.debug}" debugLevel="${compile.debugLevel}" deprecation="${compile.deprecation}" includeAntRuntime="@{includeAnt}" excludes="@{excludes}" optimize="${compile.optimize}" source="@{source}" target="@{target}">
-                            </javac>
+                            <if>
+                                <equals arg1="@{useJavac2}" arg2="true"/>
+                                <then>
+                                    <javac2 srcdir="@{srcdir}" classpathref="@{classpathRef}" destdir="${compile.out.dir}" debug="${compile.debug}" debugLevel="${compile.debugLevel}" deprecation="${compile.deprecation}" includeAntRuntime="@{includeAnt}" excludes="@{excludes}" optimize="${compile.optimize}" source="@{source}" target="@{target}"/>
+                                </then>
+                                <else>
+                                    <javac srcdir="@{srcdir}" classpathref="@{classpathRef}" destdir="${compile.out.dir}" debug="${compile.debug}" debugLevel="${compile.debugLevel}" deprecation="${compile.deprecation}" includeAntRuntime="@{includeAnt}" excludes="@{excludes}" optimize="${compile.optimize}" source="@{source}" target="@{target}"/>
+                                </else>
+                            </if>
                         </then>
                         <else>
                             <echo>::::::Skipping compilation of @{srcdir} as it didn't exist!</echo>
@@ -287,9 +295,22 @@
                 </then>
                 <else>
                     <echo>Compiling source paths with classpath @{classpathRef}</echo>
-                    <javac classpathref="@{classpathRef}" destdir="${compile.out.dir}" debug="${compile.debug}" debugLevel="${compile.debugLevel}" deprecation="${compile.deprecation}" includeAntRuntime="@{includeAnt}" excludes="@{excludes}" optimize="${compile.optimize}" source="@{source}" target="@{target}">
-                        <sourcePaths />
-                    </javac>
+
+                    <if>
+                        <equals arg1="@{useJavac2}" arg2="true"/>
+                        <then>
+                            <javac2 classpathref="@{classpathRef}" destdir="${compile.out.dir}" debug="${compile.debug}" debugLevel="${compile.debugLevel}" deprecation="${compile.deprecation}" includeAntRuntime="@{includeAnt}" excludes="@{excludes}" optimize="${compile.optimize}" source="@{source}" target="@{target}">
+                                <sourcePaths />
+                            </javac2>
+                        </then>
+                        <else>
+                            <javac classpathref="@{classpathRef}" destdir="${compile.out.dir}" debug="${compile.debug}" debugLevel="${compile.debugLevel}" deprecation="${compile.deprecation}" includeAntRuntime="@{includeAnt}" excludes="@{excludes}" optimize="${compile.optimize}" source="@{source}" target="@{target}">
+                                <sourcePaths />
+                            </javac>
+                        </else>
+                    </if>
+
+
                 </else>
             </if>
         </sequential>
