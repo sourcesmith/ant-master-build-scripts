@@ -232,7 +232,7 @@
                 <isset property="testng" />
                 <then>
                     <echo>Compiling TestNG source dirs</echo>
-                    <compileCode srcdir="${testng.src.dir}" classpathRef="classpath.compile" excludes="@{excludes}" source="@{source}" target="@{target}"/>
+                    <compileCode srcdir="${test.src.dir}" classpathRef="classpath.compile" excludes="@{excludes}" source="@{source}" target="@{target}"/>
                 </then>
                 <else>
                     <echo>Compiling JUnit source dirs</echo>
