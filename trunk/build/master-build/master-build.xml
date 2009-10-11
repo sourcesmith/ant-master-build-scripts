@@ -14,6 +14,7 @@
     <fail if="build.properties.exists" message="Didn't really delete build.properties like we should have" />
     <concat destfile="${basedir}/unversioned/build.properties">
         <fileset dir="${basedir}/build/master-build" includes="master-build.properties" />
+        <fileset dir="${basedir}/build/master-build" includes="master-webstart-build.properties" />
         <fileset dir="${basedir}/build/master-build" includes="master-j2ee-build.properties" />
         <fileset dir="${basedir}/build/master-build" includes="*${container}*.properties" />
         <fileset dir="${basedir}/build" includes="project-build.properties" />

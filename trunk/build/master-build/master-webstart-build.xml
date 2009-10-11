@@ -26,13 +26,18 @@
         </copy>
 
         <signjar jar="${webstart.lib.dir}/*.jar" keypass="${keypass}" keystore="${keystore}" alias="${alias}" storepass="${storepass}"/>
+        <copy todir="${webstart.lib.dir}" overwrite="yes">
+            <fileset dir="${lib.presigned}/">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
     </target>
 
     <!--	Jar up the app for WebStart-->
     <target name="jar" depends="compile">
-    <!--<target name="jar" depends="-init">-->
         <mkdir dir="${webstart.lib.dir}"/>
         <jar basedir="${compile.out.dir}" destfile="${webstart.dir}/lib/${app.name}.jar"/>
+        <jar basedir="${src.dir}/help" destfile="${basedir}/webstart/lib/help.jar"/>
     </target>
 
     <target name="configure" depends="-init"/>
