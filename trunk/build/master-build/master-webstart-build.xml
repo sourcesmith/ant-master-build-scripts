@@ -19,6 +19,9 @@
         <copy todir="${webstart.dir}" overwrite="yes">
             <fileset dir="${module.root.dir}/web/"/>
         </copy>
+        <copy todir="${webstart.dir}/html" overwrite="yes">
+          <fileset dir="${src.dir}/help/html" />
+        </copy>
         <copy todir="${webstart.lib.dir}" overwrite="yes">
             <fileset dir="${lib.dist}/">
                 <include name="*.jar"/>
