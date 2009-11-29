@@ -632,9 +632,10 @@
                 </then>
             </if>
             <!--get the values from the envstore and put them into a file-->
-            <envstoreLoad server="@{server}" namespace="@{namespace}" localfile="@{localfile}" update="@{update}" force="false" />
+            <!--todo - there is no envstore server - if you have one, uncomment the line below and set the server name properly in the properites-->
+            <!--<envstoreLoad server="@{server}" namespace="@{namespace}" localfile="@{localfile}" update="@{update}" force="false" />-->
             <!--Now do the envstore-->
-            <replace dir="@{target}" includes="@{includes}" excludes="@{excludes}" replacefilterfile="@{localfile}" summary="yes" casesensitive="@{casesensitive}" />
+            <!--<replace dir="@{target}" includes="@{includes}" excludes="@{excludes}" replacefilterfile="@{localfile}" summary="yes" casesensitive="@{casesensitive}" />-->
         </sequential>
     </macrodef>
 
@@ -732,16 +733,17 @@
     <macrodef name="testTestNG" description="Run the tests via TestNG.">
         <attribute name="configDir" default="${testng.config.dir}" description="The testNG config dir to use" />
         <attribute name="configFile" default="testng.xml" description="The testNG config file to use" />
-        <attribute name="outputDir" default="test-output" description="The output directory for testNG to use for generating reports" />
+        <attribute name="outputDir" default="${unversioned.dir}/test-output" description="The output directory for testNG to use for generating reports" />
         <sequential>
             <echo level="verbose">    Macrodef::master.testTestNG
                  :::configDir=  @{configDir}
-                 :::configFile= @{configFile}</echo>
+                 :::configFile= @{configFile}
+                 :::outputDir= ${unversioned.dir}/@{outputDir}</echo>
             <taskdef resource="testngtasks" classpath="${lib.test}/testng.jar" />
             <testng sourcedir="${test.src.dir}"
                     annotations="JDK"
                     classpathref="classpath.testng.run"
-                    outputdir="${unversioned.dir}/@{outputDir}"
+                    outputdir="@{outputDir}"
                     haltOnfailure="true">
                 <xmlfileset dir="@{configDir}" includes="@{configFile}" />
             </testng>
@@ -755,7 +757,8 @@
             <isset property="testng" />
             <then>
                 <cleanDir dirName="${testng.doc.dir}" />
-                <testTestNG configFile="testng.xml"/>
+                <!--<testTestNG configdir="${testng.config.dir}/testng.xml"/>-->
+                <testTestNG />
                 <if>
                     <isset property="has.incontainer.test" />
                     <then>
@@ -806,22 +809,6 @@
         </junitTestCore>
     </target>
 
-    <!--<macrodef name="listFiles" description="List the files in the fileset element. This list of files describe the files to be worked on by unix deploy script for search and replace">-->
-        <!--<sequential>-->
-            <!--<echo level="verbose">    Macrodef::master.listFiles</echo>-->
-            <!--<mkdir dir="${nurflugel.deploy.dir}" />-->
-            <!--<copy todir="${nurflugel.deploy.dir}" failonerror="false">-->
-                <!--<fileset dir="${app.root.dir}/nurflugel-deploy"/>-->
-            <!--</copy>-->
-            <!--<listFilesTask listfile="${nurflugel.deploy.dir}/substitutions.txt">-->
-                <!--<fileset dir="${tar.stage.dir}">-->
-                    <!--<include name="**/*.xml" />-->
-                    <!--<include name="**/*.properties" />-->
-                <!--</fileset>-->
-            <!--</listFilesTask>-->
-        <!--</sequential>-->
-    <!--</macrodef>-->
-
     <!--empty macrodef so we can have a placeholder for j2ee config in the configure task-->
     <macrodef name="copyJ2eeConfig">
         <sequential>
@@ -829,15 +816,12 @@
         </sequential>
     </macrodef>
 
-    <!--empty macrodef so we can have a placeholder for fulfiller config in the configure task-->
-    <!--<macrodef name="fulfillerCopyConfig">-->
-        <!--<sequential>-->
-            <!--<echo level="verbose">    Macrodef::master.fulfillerCopyConfig</echo>-->
-        <!--</sequential>-->
-    <!--</macrodef>-->
-
     <target name="configure" depends="-init" description="Copy all needed data into a staging area and envstore it for use in testing. This can be skipped for speed by passing in '-Dnoconfigure=t'" unless="noconfigure">
-        <echo level="verbose">Target::master.configure</echo>
+        <echo level="verbose">
+            Target::master.configure
+                :::{config.data.dir}=${config.data.dir}
+                :::{src.dir}/config=${src.dir}/config
+        </echo>
         <copyFiles toDir="${config.data.dir}" fromDir="${src.dir}/config" />
         <copyFiles toDir="${config.data.dir}" fromDir="${test.resources.dir}" />
         <copyJ2eeConfig />
@@ -848,7 +832,12 @@
 
     <macrodef name="copyTestData">
         <sequential>
-            <echo level="verbose">    Macrodef::master.copyTestData</echo>
+            <echo level="verbose">
+                Macrodef::master.copyTestData
+                :::{config.data.dir}=${config.data.dir}
+                :::{test.data.dir}=${test.data.dir}
+
+            </echo>
             <!--copy any test data in test resources to the config dir and configure it-->
             <copyFiles toDir="${config.data.dir}" fromDir="${test.data.dir}" />
         </sequential>

@@ -8,7 +8,6 @@
   </component>
   <component name="CompilerConfiguration">
     <option name="DEFAULT_COMPILER" value="Javac" />
-    <option name="DEPLOY_AFTER_MAKE" value="0" />
     <resourceExtensions>
       <entry name=".+\.(properties|xml|html|dtd|tld)" />
       <entry name=".+\.(gif|png|jpeg|jpg)" />
@@ -504,9 +503,9 @@
         </inspection_tool>
         <inspection_tool class="SleepWhileHoldingLock" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="SocketResource" enabled="true" level="WARNING" enabled_by_default="true" />
-        <inspection_tool class="SqlIdentifierInspection" level="WARNING" enabled="true" />
-        <inspection_tool class="SqlResolveInspection" level="WARNING" enabled="true" />
-        <inspection_tool class="SqlTypeInspection" level="WARNING" enabled="true" />
+        <inspection_tool class="SqlIdentifierInspection" enabled="true" level="WARNING" enabled_by_default="true" />
+        <inspection_tool class="SqlResolveInspection" enabled="true" level="WARNING" enabled_by_default="true" />
+        <inspection_tool class="SqlTypeInspection" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="StandardVariableNames" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="StatementsPerFunctionJS" enabled="true" level="WARNING" enabled_by_default="true">
           <option name="m_limit" value="30" />
