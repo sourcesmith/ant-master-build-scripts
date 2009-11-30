@@ -743,12 +743,34 @@
                     annotations="JDK"
                     classpathref="classpath.testng.run"
                     outputdir="@{outputDir}"
-                    haltOnfailure="true">
+                    haltOnfailure="false">
                 <xmlfileset dir="@{configDir}" includes="@{configFile}" />
             </testng>
+
+            <formatTestNgOutput testNgOutputDir="@{outputDir}"/>
         </sequential>
     </macrodef>
 
+    <macrodef  name="formatTestNgOutput">
+        <attribute name="testNgOutputDir"/>
+        <attribute name="outputDir" default="${unversioned.dir}/test-output/formattedOutput"/>
+        <sequential>
+            <echo  level="verbose">    Macrodef::master.formatTestNgOutput
+                testNgOutputDir=@{testNgOutputDir}
+                outputDir=@{outputDir}
+            </echo>
+            <mkdir dir="@{outputDir}"/>
+            <xslt in="@{testNgOutputDir}/testng-results.xml"
+                  style="${lib.test}/testng-results.xsl"
+                  out="@{outputDir}/index.html">
+                <param name="testNgXslt.outputDir" expression="@{outputDir}/"/>
+                <param name="testNgXslt.sortTestCaseLinks" expression="true"/>
+                <param name="testNgXslt.testDetailsFilter" expression="FAIL,SKIP,PASS"/>
+                <classpath refid="classpath.testng.run"/>
+            </xslt>
+        </sequential>
+    </macrodef>
+    
     <target name="test" depends="compile,configure" description="Run the unit tests.">
         <echo level="verbose">Target::master.test</echo>
         <if>
