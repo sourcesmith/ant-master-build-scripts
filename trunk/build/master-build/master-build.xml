@@ -772,7 +772,7 @@
             </echo>
             <mkdir dir="@{outputDir}"/>
             <xslt in="@{testNgOutputDir}/testng-results.xml"
-                  style="${lib.test}/testng-results.xsl"
+                  style="${lib.test.formatTestNg}/testng-results.xsl"
                   out="@{outputDir}/index.html">
                 <param name="testNgXslt.outputDir" expression="@{outputDir}/"/>
                 <param name="testNgXslt.sortTestCaseLinks" expression="true"/>
