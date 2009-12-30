@@ -41,6 +41,10 @@
         <pathelement path="${config.data.dir}" />
         <pathelement path="${compile.out.dir}" />
     </path>
+    
+    <path id="classpath.testng.format">
+        <fileset dir="${lib.test.formatTestNg}" includes="*.jar" />
+    </path>
 
     <!--Validate the existance of a property.  Fail the build if it's not set.  We don't care what it is, as long as it exists-->
     <macrodef name="validateProperty">
