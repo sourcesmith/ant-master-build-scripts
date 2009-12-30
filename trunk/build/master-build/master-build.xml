@@ -781,7 +781,7 @@
                 <param name="testNgXslt.outputDir" expression="@{outputDir}/"/>
                 <param name="testNgXslt.sortTestCaseLinks" expression="true"/>
                 <param name="testNgXslt.testDetailsFilter" expression="FAIL,SKIP,PASS"/>
-                <classpath refid="classpath.testng.run"/>
+                <classpath refid="classpath.testng.format"/>
             </xslt>
             </then>
           </if>
