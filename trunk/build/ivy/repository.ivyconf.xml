@@ -12,7 +12,7 @@
             <ivy pattern="${dist.dir}/[module].ivy.xml"/>
             <artifact pattern="${dist.dir}/[artifact].[type]"/>
         </filesystem>
-        <url name="nurflugel-repository" changingPattern="*-SNAPSHOT" changingMatcher="glob">
+        <url name="nurflugel-repository" changingPattern=".*-SNAPSHOT" changingMatcher="glob">
             <ivy pattern="${repository.url.http}/[organisation]/[module]/[revision]/[module]-[revision].ivy.xml"/>
             <artifact pattern="${repository.url.http}/[organisation]/[module]/[revision]/[artifact]-[revision].[type]"/>
         </url>
