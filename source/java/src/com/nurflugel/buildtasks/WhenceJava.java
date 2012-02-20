@@ -15,7 +15,7 @@ import java.util.zip.ZipFile;
  * @author        Douglas Bullard
  * @noinspection  UseOfSystemOutOrSystemErr,ClassWithoutPackageStatement
  */
-public class WhenceJava extends Task
+public class WhenceJava  // extends Task
 {
   private boolean wildcardEnd;
   private boolean wildcardFront;
@@ -30,17 +30,24 @@ public class WhenceJava extends Task
   }
 
   // --------------------------- main() method ---------------------------
-
   public static void main(String[] args)
   {
     WhenceJava wj = new WhenceJava();
 
-    wj.setClassToFind("Task*");
-    wj.setLibPath("/Users/douglasbullard/Documents/JavaStuff/Google_Code/ant-master-build-scripts/trunk/unversioned/lib/build");
+    if (args.length == 0)
+    {
+      wj.setClassToFind("Task*");
+      wj.setLibPath("/Users/douglasbullard/Documents/JavaStuff/Google_Code/ant-master-build-scripts/trunk/unversioned/lib/build");
+    }
+    else if (args.length == 2)
+    {
+      wj.setClassToFind(args[0]);
+      wj.setLibPath(args[1]);
+    }
+
     wj.execute();
   }
 
-  @Override
   public void execute() throws BuildException
   {
     // String[] dibble={"Vector","/snapshots/admin/trunk/unversioned/lib/source"};
@@ -85,7 +92,6 @@ public class WhenceJava extends Task
       System.out.println("Example: whencejava -Dclass=*Vector -Dpath=lib  - finds the jar and packages structure for any class ending with Vector");
       System.out.println("Example: whencejava -Dclass=Vector* -Dpath=lib  - finds the jar and packages structure for any class beginning with Vector");
       System.out.println("Example: whencejava -Dclass=*Vector* -Dpath=lib - finds the jar and packages structure for any class with Vector as part of it's name");
-
       System.exit(0);
     }
   }
@@ -187,7 +193,6 @@ public class WhenceJava extends Task
   private boolean shouldDisplay(String nameToTest, String rawClassName, boolean isDir)
   {
     String nextTrimmedClassName = trimClassExtension(nameToTest);
-
     int    lastSlash            = -1;
 
     if (!isDir)
@@ -238,7 +243,6 @@ public class WhenceJava extends Task
   private String trimClassExtension(String className)
   {
     String trimmedClassName = className;
-
     int    dotStart         = trimmedClassName.indexOf(".class");
 
     if (dotStart >= 0)
@@ -269,7 +273,6 @@ public class WhenceJava extends Task
     while (zipEntries.hasMoreElements())
     {
       String  nextFullClassName = zipEntries.nextElement().toString();
-
       boolean doDisplay         = shouldDisplay(nextFullClassName, className, false);
 
       if (doDisplay)  // todo - here is the problem - this only allows one instance of the class per file...
@@ -318,7 +321,6 @@ public class WhenceJava extends Task
   }
 
   // -------------------------- INNER CLASSES --------------------------
-
   private class SearchResult
   {
     private String filePath;
