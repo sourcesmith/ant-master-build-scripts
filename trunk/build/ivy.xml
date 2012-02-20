@@ -6,7 +6,7 @@
   <ivyauthor name="Douglas Bullard" />
   <repository name="nurflugel-repository" url="http://www.nurflugel.com/Home/repository" ivys="true" artifacts="true" />
 </info>
-<configurations defaultconfmapping="build,dist,test-&gt;default">
+<configurations defaultconfmapping="build,dist,test->default">
         <conf name="build"   visibility="public"  description="Dependencies only used during the build process." />
         <conf name="dist"    visibility="private" description="Dependencies included in web app." />
         <conf name="javadoc" visibility="public"  description="Some libraries provide separate javadoc packages." />
