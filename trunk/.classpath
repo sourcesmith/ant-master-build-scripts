@@ -4,5 +4,6 @@
 	<classpathentry kind="src" path="source/java/test/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="unversioned/lib/build/ant.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/groovy-1.8.6"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
