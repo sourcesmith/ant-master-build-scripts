@@ -21,6 +21,7 @@ configurations {
   test
   reporting
   javac2
+  codeCoverage
 }
 
 
@@ -58,16 +59,40 @@ dependencies
     {
       javac2 'com.intellij:javac2:9.0.0',
              'org.objectweb.asm:asm:3.1'
+
+      testCompile  'com.google.inject:guice:3.0'
+  //  experimental jacoco import
+      testCompile  ('velocity:velocity:1.4'){transtive=true}
+      testCompile  ('org.uncommons:reportng:1.1.2'){transitive=false}
+
+//      codeCoverage files("${rootProject.projectDir.path}/lib/jacocoagent.jar")
+      codeCoverage 'org.jacoco:org.jacoco.build:0.5.7.201204190339'
+      codeCoverage 'org.jacoco:org.jacoco.ant:0.5.7.201204190339'
+      runtime      'org.jacoco:org.jacoco.agent:0.5.7.201204190339'
+      codeCoverage 'org.jacoco:org.jacoco.agent:0.5.7.201204190339'
+      codeCoverage 'org.jacoco:org.jacoco.report:0.5.7.201204190339'
+      codeCoverage 'org.jacoco:org.jacoco.core:0.5.7.201204190339'
+      codeCoverage 'org.jacoco:org.jacoco.agent:0.5.7.201204190339'
+
     }
 
 test {
   useTestNG()
+  testLogging.showStandardStreams = true
+  options.suites("src/test/testng-config/testng.xml")
   systemProperties "org.uncommons.reportng.stylesheet": "${projectDir}/src/test/resources/hudsonesque.css"
+  systemProperties "running.in.gradle": "yes"
   options {
     listeners << 'org.uncommons.reportng.HTMLReporter'
     listeners << 'org.uncommons.reportng.JUnitXMLReporter'
   }
   workingDir = 'build/'
+
+//  println "\n\nThe testclasspath is: "
+//  project.sourceSets.test.runtimeClasspath.each {
+//    println "    classpath entry: " + it
+//  }
+//  println "\n\n"
 }
 
 //task testFormat {
@@ -92,27 +117,27 @@ javadoc {
   options.footer(copyrightString)
 }
 
-task formatTestResults (dependsOn: "test") << {
-  ant.xslt(in: './build/reports/tests/testng-results.xml',
-           out: './build/reports/tests/index.html',
-           style: 'src/main/resources/testng-results.xsl',
-           classpath: '/Users/douglasbullard/Documents/JavaStuff/testng-xslt-1.1.1/lib/saxon-8.7.jar') {
-    param(name: 'testNgXslt.outputDir', expression: '$outputDir')
-    param(name: 'testNgXslt.sortTestCaseLinks', expression: 'true')
-    param(name: 'testNgXslt.testDetailsFilter', expression: "FAIL,SKIP,PASS")
-  }
-}
+//task formatTestResults (dependsOn: "test") << {
+//  ant.xslt(in: './build/reports/tests/testng-results.xml',
+//           out: './build/reports/tests/index.html',
+//           style: 'src/main/resources/testng-results.xsl',
+//           classpath: '/Users/douglasbullard/Documents/JavaStuff/testng-xslt-1.1.1/lib/saxon-8.7.jar') {
+//    param(name: 'testNgXslt.outputDir', expression: '$outputDir')
+//    param(name: 'testNgXslt.sortTestCaseLinks', expression: 'true')
+//    param(name: 'testNgXslt.testDetailsFilter', expression: "FAIL,SKIP,PASS")
+//  }
+//}
 
-task transform << {
-  def transformer = TransformerFactory.newInstance().newTransformer(in: './build/reports/tests/testng-results.xml',
-                                                                    out: './build/reports/tests/index.html',
-                                                                    style: 'src/main/resources/testng-results.xsl'
-                                                                    , classpath: '/Users/douglasbullard/Documents/JavaStuff/testng-xslt-1.1.1/lib/saxon-8.7.jar')
-  transformer.setParamter(name: 'testNgXslt.testDetailsFilter', expression: "FAIL,SKIP,PASS")
-  transformer.setParamter(name: 'testNgXslt.outputDir', expression: '$outputDir')
-  transformer.setParamter(name: 'testNgXslt.sortTestCaseLinks', expression: 'true')
-  transformer.transform()
-}
+//task transform << {
+//  def transformer = TransformerFactory.newInstance().newTransformer(in: './build/reports/tests/testng-results.xml',
+//                                                                    out: './build/reports/tests/index.html',
+//                                                                    style: 'src/main/resources/testng-results.xsl'
+//                                                                    , classpath: '/Users/douglasbullard/Documents/JavaStuff/testng-xslt-1.1.1/lib/saxon-8.7.jar')
+//  transformer.setParamter(name: 'testNgXslt.testDetailsFilter', expression: "FAIL,SKIP,PASS")
+//  transformer.setParamter(name: 'testNgXslt.outputDir', expression: '$outputDir')
+//  transformer.setParamter(name: 'testNgXslt.sortTestCaseLinks', expression: 'true')
+//  transformer.transform()
+//}
 
 //def factory = TransformerFactory.newInstance()
 //def transformer = factory.newTransformer(new StreamSource(new StringReader(xslt)))
@@ -130,8 +155,8 @@ task transform << {
 task publishWebstart(dependsOn: ['installApp', 'copyResources', 'copyHelp', 'copyLibs', 'signJars'], description: 'Create the WebStart distributable.')
 
 // Note that we have to tell Gradle what's expected to run before this - Gradle doesn't honor dependency order in the tasks as specified above
-task copyLibs(type: Copy, dependsOn: ['installApp']) {
-  from('build/install/IvyTools/lib')
+task copyLibs(type: Copy, dependsOn: installApp) {
+  from('build/install/gradleTrunk/lib')//todo wrong project name here!!!!!!
   into('webstart/lib')
   //todo rename via regexp to strip jar versions off
 }
@@ -196,3 +221,48 @@ task wrapper(type: Wrapper) {
 }
 
 
+//jacoco stuff
+
+test {
+//  jvmArgs "-javaagent:${configurations.codeCoverage.singleFile}=destfile=${buildDirName}/coverage-results/jacoco.exec,sessionid=HSServ,append=false",
+//  jvmArgs "-javaagent:build/install/gradleTrunk/lib/org.jacoco.agent-0.5.7.201204190339.jar=destfile=build/reports/coverage-results/jacoco.exec,sessionid=HSServ,append=false",
+//    'Djacoco=true',
+//    '-Xms128m',
+//    '-Xmx512m',
+//    '-XX:MaxPermSize=128m'
+}
+
+task generateCoverageReport (dependsOn: [test,installApp]) << {
+  ant {
+    taskdef(name:'jacocoreport', classname: 'org.jacoco.ant.ReportTask') {
+//      classpath path: "${rootProject.projectDir.path}/lib/jacocoant.jar"
+      classpath path: "build/install/gradleTrunk/lib/org.jacoco.agent-0.5.7.201204190339.jar"
+//      classpath path: configurations.codeCoverage.singleFile.
+    }
+
+    mkdir dir: "${buildDirName}/reports/coverage"
+
+    jacocoreport {
+      executiondata {
+        fileset(dir: "build/reports/coverage-results") {
+          ant.file file: 'jacoco.exec'
+        }
+      }
+
+      structure(name: project.name) {
+
+        classfiles {
+          fileset dir: "${project.buildDir.path}/classes/main"
+        }
+
+        // this is for Windows
+        sourcefiles(encoding: 'CP1252') {
+          fileset dir: "${project.projectDir.path}/src/main/java"
+        }
+      }
+
+      xml destfile: "build/reports/coverage/jacoco.xml"
+      html destdir: "build/reports/coverage"
+    }
+  }
+}
