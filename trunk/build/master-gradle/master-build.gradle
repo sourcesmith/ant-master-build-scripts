@@ -3,7 +3,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 apply plugin: 'application'
 apply plugin: 'idea'
 apply plugin: 'project-report'
-apply plugin: 'checkstyle'
+//apply plugin: 'checkstyle'
 apply plugin: 'pmd'
 apply plugin: 'signing'
 
@@ -150,6 +150,7 @@ javadoc {
 // Note that we have to tell Gradle what's expected to run before this - Gradle doesn't honor dependency order in the tasks as specified below
 task publishWebstart(dependsOn: [ 'copyResources', 'copyHelp', 'signJars'], description: 'Create the WebStart distributable.')
 
+
 task copyLibs(type: Copy, dependsOn: jar) {
   from configurations.runtime
   from ('build/libs'){
@@ -181,7 +182,6 @@ task copyFilteredResources(type: Copy) {
   }
   into('webstart')
 
-
 //this
 //   codebase="http://ivy-tools.googlecode.com/svn/@subversion_trunk_or_branch@/webstart/"
 //  turns into
@@ -201,7 +201,7 @@ task copyHelp(type: Copy) {
   into('webstart/html')
 }
 
-
+// if this is set to anything, we only sign the main application jar.  If not set, ALL jars are signed (slow!)
 final signMainJarPropertyName = 'just.sign.main.jar'
 
 
@@ -231,33 +231,32 @@ task wrapper(type: Wrapper) {
   gradleVersion = '1.0-rc-3'
 }
 
-task javac2Compile << {
+// we overwrite compileJava because the IDEA javac2 compiler is needed for GUI forms.  TODO - figure out how to do this via a flag or something...
+task compileJava (overwrite: true) << {
+  theDir = file("${project.buildDir.path}/classes/main")
+  theDir.mkdirs()
+    final mainSrcDir = "${projectDir}/src/main/java"
   ant {
     taskdef(name: 'javac2',
             classname: 'com.intellij.ant.Javac2',
             classpath: configurations.javac2.asPath)
 
-    final mainSrcDir = "${projectDir}/src/main/java"
-    final classpathref = configurations.compile.asPath
-    println "********* dir is " + mainSrcDir+" classpathref is "+classpathref
-
-        javac2(srcdir: mainSrcDir,
-//               classpathref: configurations.mainCompile,
-               classpath: configurations.compile.asPath,
-//               classpathref: configurations.compile.asPath,
-               destdir: "build/classes/main"
-//               ,
+    javac2(srcdir: mainSrcDir,
+           classpath: configurations.compile.asPath,
+           destdir: "build/classes/main",
 //               debug: "${compile.debug}",
 //               debugLevel: "${compile.debugLevel}",
 //               deprecation: "${compile.deprecation}",
 //               includeAntRuntime: "@{includeAnt}",
+           includeAntRuntime: false
 //               optimize: "${compile.optimize}",
 //               source: "@{source}",
 //               target: "@{target}"
-        )
+    )
 
   }
 }
+
 //jacoco stuff below....
 
 test {
