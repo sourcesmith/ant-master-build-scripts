@@ -55,7 +55,9 @@ repositories {
 dependencies
     {
       javac2 'com.intellij:javac2:9.0.0',
-             'org.objectweb.asm:asm:3.1'
+             'asm:asm-commons:3.3.1',
+             'asm:asm-parent:3.3.1',
+             'org.jdom:jdom:1.0'
 
       testCompile  'com.google.inject:guice:3.0'
       testCompile  ('velocity:velocity:1.4'){transtive=true}
@@ -229,7 +231,33 @@ task wrapper(type: Wrapper) {
   gradleVersion = '1.0-rc-3'
 }
 
+task javac2Compile << {
+  ant {
+    taskdef(name: 'javac2',
+            classname: 'com.intellij.ant.Javac2',
+            classpath: configurations.javac2.asPath)
 
+    final mainSrcDir = "${projectDir}/src/main/java"
+    final classpathref = configurations.compile.asPath
+    println "********* dir is " + mainSrcDir+" classpathref is "+classpathref
+
+        javac2(srcdir: mainSrcDir,
+//               classpathref: configurations.mainCompile,
+               classpath: configurations.compile.asPath,
+//               classpathref: configurations.compile.asPath,
+               destdir: "build/classes/main"
+//               ,
+//               debug: "${compile.debug}",
+//               debugLevel: "${compile.debugLevel}",
+//               deprecation: "${compile.deprecation}",
+//               includeAntRuntime: "@{includeAnt}",
+//               optimize: "${compile.optimize}",
+//               source: "@{source}",
+//               target: "@{target}"
+        )
+
+  }
+}
 //jacoco stuff below....
 
 test {
@@ -275,4 +303,34 @@ task generateCoverageReport (dependsOn: [test]) << {
       html destdir: "build/reports/coverage"
     }
   }
+}
+
+List<String> argList = ['dibble','dabble']
+
+//java -cp webstart/lib/buildtasks-1.0-SNAPSHOT.jar:webstart/lib/ant-1.8.4.jar com.nurflugel.buildtasks.WhenceJava $*
+task whencejava (type: JavaExec){
+  main = 'com.nurflugel.buildtasks.WhenceJava'
+  classpath = configurations.runtime
+//  args [System.getProperty('classname'),System.getProperty('path')]
+  args argList
+  systemProperty 'simple.message', 'Hello '
+
+
+}
+
+task wj <<{
+  tomcatRun.execute()
+  javaexec {
+              main = "com.nurflugel.buildtasks.WhenceJava"
+              classpath = configurations.runtime
+              args = ['dibble','dabble']
+              jvmargs= ['sizzle','saddle']
+  }
+}
+
+task wj2 <<{
+  ant.java(classname: 'com.nurflugel.buildtasks.WhenceJava', fork: true,
+           classpath: "${configurations.runtime.asPath}",
+           args: 'dibble dabble'
+           )
 }
