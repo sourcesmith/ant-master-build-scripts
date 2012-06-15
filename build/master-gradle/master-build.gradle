@@ -54,7 +54,8 @@ repositories {
 
 dependencies
     {
-      javac2 'com.intellij:javac2:9.0.0',
+      javac2 'com.intellij:javac2:11.0.3',
+             'com.intellij:annotations:11.0.3',
              'asm:asm-commons:3.3.1',
              'asm:asm-parent:3.3.1',
              'org.jdom:jdom:1.0'
@@ -228,7 +229,7 @@ task signJars(dependsOn: copyLibs) << {
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '1.0-rc-3'
+  gradleVersion = '1.0'
 }
 
 // we overwrite compileJava because the IDEA javac2 compiler is needed for GUI forms.  TODO - figure out how to do this via a flag or something...
@@ -244,14 +245,14 @@ task compileJava (overwrite: true) << {
     javac2(srcdir: mainSrcDir,
            classpath: configurations.compile.asPath,
            destdir: "build/classes/main",
-//               debug: "${compile.debug}",
+               debug: "compile.debug",
 //               debugLevel: "${compile.debugLevel}",
 //               deprecation: "${compile.deprecation}",
 //               includeAntRuntime: "@{includeAnt}",
-           includeAntRuntime: false
+           includeAntRuntime: false,
 //               optimize: "${compile.optimize}",
-//               source: "@{source}",
-//               target: "@{target}"
+               source: sourceCompatibility,
+               target: targetCompatibility
     )
 
   }
