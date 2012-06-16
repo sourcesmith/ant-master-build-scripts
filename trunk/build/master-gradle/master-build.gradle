@@ -242,17 +242,21 @@ task compileJava (overwrite: true) << {
             classname: 'com.intellij.ant.Javac2',
             classpath: configurations.javac2.asPath)
 
+//    compile.debug=on
+//    compile.optimize=off
+//    compile.deprecation=off
+//    compile.debugLevel=lines,vars,source
+
     javac2(srcdir: mainSrcDir,
            classpath: configurations.compile.asPath,
            destdir: "build/classes/main",
-               debug: "compile.debug",
-//               debugLevel: "${compile.debugLevel}",
-//               deprecation: "${compile.deprecation}",
-//               includeAntRuntime: "@{includeAnt}",
+           debug: "on",
+           debugLevel: "lines,vars,source",
+           deprecation: "off",
            includeAntRuntime: false,
-//               optimize: "${compile.optimize}",
-               source: sourceCompatibility,
-               target: targetCompatibility
+           optimize: "off",
+           source: sourceCompatibility,
+           target: targetCompatibility
     )
 
   }
