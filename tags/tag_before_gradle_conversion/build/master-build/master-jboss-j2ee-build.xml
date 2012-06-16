@@ -1,0 +1,204 @@
+<?xml version="1.0"?>
+<!--Do NOT alter this without discussing it with either Douglas Bullard or Justin Redd or Anil!!        -->
+
+<project name="master-jboss-j2ee" basedir="../..">
+    <!--This file is responsible for the Jboss-specific stuff needed for an Jboss J2EE application-->
+
+    <property name="container" value="jboss" />
+
+    <import file="master-j2ee-build.xml" />
+
+    <property name="server.home" value="${env.JBOSS_SERVER_HOME}" />
+
+    <path id="classpath.container">
+        <fileset dir="${server.home}/../bin" includes="*.jar" />
+        <fileset dir="${server.home}/../lib" includes="*.jar" />
+        <fileset dir="${env.JAVA_HOME}\lib" includes="tools.jar" />
+    </path>
+
+    <path id="classpath.start.container">
+        <fileset dir="${server.home}/../bin" includes="run.jar" />
+        <fileset dir="${env.JAVA_HOME}\lib" includes="tools.jar" />
+    </path>
+
+    <path id="classpath.compile">
+        <fileset dir="${lib.build}" includes="*.jar" />
+        <!--<fileset dir="${lib.container}"/>-->
+    </path>
+
+    <!--The build must know where the JBoss server is located-->
+    <validateProperty propertyName="env.JBOSS_SERVER_HOME" message="You must define JBOSS_SERVER_HOME in your system environment prior to running this script For example, JBOSS_SERVER_HOME=\jbdevstudio\jboss-eap\jboss-as\server" />
+
+    <!--A list of properties to validate, specific to J2EE projects ensuring that the build.properties file is correct-->
+    <validateProperty propertyName="server.home" />
+    <validateProperty propertyName="app.module.name" />
+    <validateProperty propertyName="jboss.server.name" />
+
+    <target name="distribute-container" depends="-init">
+        <echo>todo</echo>
+    </target>
+
+    <target name="configure-container" depends="-init" description="Create/configure the local JBoss server for this application">
+        <echo level="verbose">Target::master-jboss-j2ee.configure-server</echo>
+        <stopContainer />
+        <breakLinks stageRootDir="${deploy.root}/${app.name}" />
+        <ant antfile="${basedir}/build/jboss-servers/build/build.xml" target="local-deploy-${jboss.server.name}" inheritrefs="false" inheritall="false">
+		<property name="release.number" value="${release.number}"/>
+        </ant>
+    </target>
+
+    <target name="start-container" depends="-init" description="Starts Jboss">
+        <echo level="verbose">Target::master-jboss-j2ee.start-container</echo>
+        <startContainer />
+    </target>
+
+    <target name="stop-container" depends="-init" description="Stops JBoss">
+        <echo level="verbose">Target::master-jboss-j2ee.stop-container</echo>
+        <stopContainer />
+    </target>
+
+    <macrodef name="stopContainer" description="Stops the running JBoss instance">
+        <attribute name="userName" default="admin" />
+        <attribute name="password" default="admin" />
+        <sequential>
+            <echo level="verbose">    Macrodef::master-jboss-j2ee.stopContainer</echo>
+            <echo>:::In stopContainer macrodef, stopping jboss
+                 :::userName=           @{userName}
+                 :::password=           @{password}
+                 :::server home=        ${server.home}
+                 :::jobss.server.name=  ${jboss.server.name}</echo>
+            <trycatch>
+                <try>
+                    <java classname="org.jboss.Shutdown" dir="${server.home}/${jboss.server.name}" fork="true" failonerror="true">
+                        <classpath>
+                            <path refid="classpath.container" />
+                        </classpath>
+                        <arg value="-u" />
+                        <arg value="@{userName}" />
+                        <arg value="-p" />
+                        <arg value="@{password}" />
+                    </java>
+                </try>
+                <catch>
+                    <echo>Couldn't stop server, if it's not running, that's OK. Ignore any exception that might have appeared.</echo>
+                </catch>
+            </trycatch>
+            <echo>Finished stopContainer macrodef</echo>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="startContainer" description="starts JBoss">
+        <sequential>
+            <echo level="verbose">    Macrodef::master-jboss-j2ee.startContainer
+                 :::server home is      ${server.home}
+                 :::server name is      ${jboss.server.name}
+                 :::debug port is       ${server.debug.port}</echo>
+            <java classname="org.jboss.Main" dir="${server.home}/${jboss.server.name}" fork="true" failonerror="true">
+                <classpath>
+                    <path refid="classpath.start.container" />
+                </classpath>
+                <jvmarg value="-Djava.endorsed.dirs=${server.home}\..\lib\endorsed" />
+                <jvmarg value="-Dsun.rmi.dgc.server.gcInterval=3600000" />
+                <jvmarg value="-Dsun.rmi.dgc.client.gcInterval=3600000" />
+                <jvmarg value="-Xms128m" />
+                <jvmarg value="-Xmx512m" />
+                <jvmarg value="-XX:MaxPermSize=128m" />
+                <!--            needed for Idea debugging-->
+                <jvmarg value="-Xdebug" />
+                <jvmarg value="-Xnoagent" />
+                <jvmarg value="-Djava.compiler=NONE" />
+                <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=${server.debug.port}" />
+                <arg value="-c ${jboss.server.name}" />
+            </java>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="deployAppConfigToJBoss" description="Deploys the application config">
+        <sequential>
+            <echo level="verbose">    Macrodef::master-jboss-j2ee.deployAppConfigToJBoss</echo>
+            <copyFiles toDir="${deploy.root}" fromDir="${src.dir}/config/jboss" />
+        </sequential>
+    </macrodef>
+
+    <target name="local-deploy" depends="compile" description="Override of master deploy so we can copy server config files before envstoring whole deploy dir">
+        <echo level="verbose">Target::master-jboss-j2ee.local-deploy</echo>
+        <deployAppConfigToJBoss />
+        <master-j2ee.local-deploy j2eeStageDir="${deploy.root}/${short.app.name}" envstoreTarget="${deploy.root}" />
+        <testForRunningContainer failmode="failIfRunning" />
+        <buildInfo />
+    </target>
+
+    <macrodef name="getContainerStatus" description="Tests for existance of running server. Sets the containerRunning property to true or false. Note that you should reset this property with the 'var' command for repeatibility.">
+        <attribute name="serverPort"  description="Port number for the running server's web page" />
+        <sequential>
+            <echo level="verbose">    Macrodef::master-jboss-j2ee.getContainerStatus
+                 :::serverPort= @{serverPort}</echo>
+            <!--clear out any previous results-->
+            <delete file="unversioned\servertest_results.txt" quiet="true" />
+            <get src="http://localhost:@{serverPort}" dest="unversioned\servertest_results.txt" username="admin" password="admin" ignoreerrors="true" />
+            <if>
+                <available file="unversioned\servertest_results.txt" />
+                <then>
+                    <property name="containerRunning" value="true" />
+                </then>
+                <else>
+                    <property name="containerRunning" value="false" />
+                </else>
+            </if>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="testForRunningContainer" description="Tests to see if the container is running.">
+        <attribute name="failMode" default="none" description="Has three values - none (just test and print the results), failIfStopped (fail the build if the server is stopped), and failIfRunning (fail the build if the server is running" />
+        <sequential>
+            <echo level="verbose">    Macrodef::master-jboss-j2ee.testForRunningContainer
+                 :::failMode= @{failMode}</echo>
+            <echo>Testing for running container - failure mode is @{failMode}</echo>
+            <setPropertyFromEnvstore propertyName="web.server.port" envstoreKey="%%jboss-${jboss.server.name}-cluster.http.port%%"/>
+            <getContainerStatus serverPort="${web.server.port}" />
+            <!--print out the server status-->
+            <echo>Server is running: ${containerRunning}</echo>
+            <if>
+                <!--if the container is running and we're supposed to fail if it's running-->
+                <and>
+                    <equals arg1="${containerRunning}" arg2="true" />
+                    <equals arg1="@{failMode}" arg2="failIfRunning" />
+                </and>
+                <then>
+                    <fail message="The container was running, should not have been. The build has been halted." />
+                </then>
+                <!--if the container isn't running and we're supposed to fail if it isn't running-->
+                <elseif>
+                    <and>
+                        <equals arg1="${containerRunning}" arg2="false" />
+                        <equals arg1="@{failMode}" arg2="failIfStopped" />
+                    </and>
+                    <then>
+                        <fail message="The container was not running, but should have been. The build has been halted." />
+                    </then>
+                </elseif>
+                <else>
+                    <!--only print out the soothing message if we'd had an exception (the container was stopped)-->
+                    <if>
+                        <equals arg1="containerRunning" arg2="false" />
+                        <then>
+                            <echo>It's OK if we got an exception above. Ignore it.</echo>
+                        </then>
+                    </if>
+                </else>
+            </if>
+            <!--subsequent calls of this macrodef will fail if we don't clear this-->
+            <var name="containerRunning" unset="true" />
+        </sequential>
+    </macrodef>
+
+    <macrodef name="includeServerConfigFiles" description="adds the server config files to the tarball for distribution">
+        <attribute name="toDir" default="${tar.stage.dir}" />
+        <sequential>
+            <echo level="verbose">    Macrodef::master-jboss-j2ee.includeServerConfigFiles
+                 :::toDir= @{toDir}</echo>
+            <copyFiles fromDir="${src.dir}/config/jboss" toDir="@{toDir}" />
+        </sequential>
+    </macrodef>
+
+</project>

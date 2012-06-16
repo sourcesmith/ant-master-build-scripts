@@ -1,0 +1,292 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+apply plugin: 'application'
+apply plugin: 'idea'
+apply plugin: 'project-report'
+//apply plugin: 'checkstyle'
+apply plugin: 'pmd'
+apply plugin: 'signing'
+
+//apply plugin: 'sonar'
+//apply plugin: 'build-announcements'
+
+configurations {
+  compile
+  presigned
+  dist
+  source
+  test
+  reporting
+  javac2
+  codeCoverage
+}
+
+println """\
+
+========================================================================================================
+Welcome to Gradle!  This is version: $gradle.gradleVersion
+              Gradle home is set to: $gradle.gradleHomeDir
+    Gradle user directory is set to: $gradle.gradleUserHomeDir
+
+                     Base directory: $projectDir
+
+
+Running build script ${relativePath(buildFile)}
+========================================================================================================
+
+"""
+
+repositories {
+  mavenCentral()
+  ivy {
+            artifactPattern "http://www.nurflugel.com/Home/repository/[organisation]/[module]/[revision]/[artifact]-[revision].[type]"
+            ivyPattern      "http://www.nurflugel.com/Home/repository/[organisation]/[module]/[revision]/[artifact]-[revision].ivy.xml"
+  }
+//    ivyF {
+//            artifactPattern "/Users/douglas_bullard/Documents/Nurflugel.com website as a WAR/html/Home/repository/[organisation]/[module]/[revision]/[artifact]-[revision].[type]"
+//            ivyPattern  "/Users/douglas_bullard/Documents/Nurflugel.com website as a WAR/html/Home/repository/[organisation]/[module]/[revision]/[artifact]-[revision].ivy.xml"
+//          }
+//    }
+}
+
+//todo configuration api - get files and use that info to deal with jar numbers and names
+
+dependencies {
+  javac2 'com.intellij:javac2:11.0.3',
+         'com.intellij:annotations:11.0.3',
+         'asm:asm-commons:3.3.1',
+         'asm:asm-parent:3.3.1',
+         'org.jdom:jdom:1.0'
+
+  testCompile  'com.google.inject:guice:3.0'
+  testCompile  ('velocity:velocity:1.4'){transtive=true}
+  testCompile  ('org.uncommons:reportng:1.1.2'){transitive=false}
+
+  codeCoverage 'org.jacoco:org.jacoco.build:0.5.7.201204190339'
+  codeCoverage 'org.jacoco:org.jacoco.ant:0.5.7.201204190339'
+  runtime      'org.jacoco:org.jacoco.agent:0.5.7.201204190339'
+  codeCoverage 'org.jacoco:org.jacoco.agent:0.5.7.201204190339'
+  codeCoverage 'org.jacoco:org.jacoco.report:0.5.7.201204190339'
+  codeCoverage 'org.jacoco:org.jacoco.core:0.5.7.201204190339'
+  codeCoverage 'org.jacoco:org.jacoco.agent:0.5.7.201204190339'
+}
+
+test {
+  useTestNG()
+  testLogging.showStandardStreams = true
+  options.suites("src/test/testng-config/testng.xml")
+  systemProperties "org.uncommons.reportng.stylesheet": "${projectDir}/src/test/resources/hudsonesque.css"
+  systemProperties "running.in.gradle": "yes"
+  workingDir = 'build/'
+  options {
+    listeners << 'org.uncommons.reportng.HTMLReporter'
+    listeners << 'org.uncommons.reportng.JUnitXMLReporter'
+  }
+}
+
+def titleForDocumentation = archivesBaseName + ' ' + version
+def copyrightString = 'Copyright &#169; 2008&#8211;2012  Douglas Bullard.  All Rights Reserved.'
+def packageTitle = group
+
+// this will fail, but still do what it's supposed to
+javadoc {
+  options.overview('overview.html')
+  options.showAll()
+  options.encoding('UTF-8')
+  options.setUse(true)
+  options.author(true)
+  options.version(true)
+  options.windowTitle(titleForDocumentation)
+  options.docTitle(titleForDocumentation)
+  options.footer(copyrightString)
+}
+
+//task zipSrc(type: Zip) {
+//    appendix = 'src'
+//    from sourceSets.main.allSource
+//    into('build/dist')
+//}
+
+// Note that we have to tell Gradle what's expected to run before this - Gradle doesn't honor dependency order in the tasks as specified below
+task publishWebstart(dependsOn: [ 'copyResources', 'copyHelp', 'signJars'], description: 'Create the WebStart distributable.')
+
+
+task jarHelp(type: Jar, description: "Create the help.jar"){
+  archiveName "help.jar"
+  from 'src/app/web/help'
+}
+
+task copyLibs(type: Copy, dependsOn: [jar, jarHelp]) {
+  from configurations.runtime
+  from ('build/libs'){
+      include '*.jar'
+  }
+  into 'webstart/lib'
+}
+
+//todo get this from Subversion !!!!!
+def subversion_branch=   'trunk'
+
+// have to split the copying up as filtering messes up images
+task copyUnfilteredResources(type: Copy) {
+  from('src/app/web'){
+    include '**/*.png'
+    include '**/*.jpg'
+    include '**/*.pdf'
+    include '**/*.gif'
+  }
+  into('webstart')
+}
+
+  // filter the webstart files, inserting the proper library versions and the subversion branch
+task copyFilteredResources(type: Copy) {
+  from('src/app/web'){
+    exclude '**/*.png'
+    exclude '**/*.jpg'
+    exclude '**/*.pdf'
+    exclude '**/*.gif'
+  }
+  into('webstart')
+
+  filter(ReplaceTokens, tokens: libraryVersions )
+  filter(ReplaceTokens, tokens: [subversion_trunk_or_branch: subversion_branch] )
+}
+
+task copyResources (dependsOn: [copyFilteredResources,copyUnfilteredResources])
+
+task copyHelp(type: Copy) {
+  from('src/app/help')
+  into('webstart/html')
+}
+
+// if this is set to anything, we only sign the main application jar.  If not set, ALL jars are signed (slow!)
+final signMainJarPropertyName = 'just.sign.main.jar'
+
+
+task signJars(dependsOn: copyLibs) << {
+  def jarsToSign
+  if(System.getProperty(signMainJarPropertyName)){
+      jarsToSign=[file("webstart/lib/GradleScriptVisualizer.jar"),file("webstart/lib/help.jar")]
+  }else{
+      jarsToSign = file("webstart/lib").listFiles()
+  }
+
+  jarsToSign.each {
+    println "Generating classes for package: " + it
+    try {
+        ant.signjar(jar: it,
+                    keypass: keypass,
+                    keystore: keystore,
+                    alias: alias,
+                    storepass: storepass)
+    } catch (Exception e) {
+        println 'Got an exception signing jar, but continuing: ' +e
+    }
+  }
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '1.0'
+}
+
+// we overwrite compileJava because the IDEA javac2 compiler is needed for GUI forms.  TODO - figure out how to do this via a flag or something...
+task compileJava (overwrite: true) << {
+  theDir = file("${project.buildDir.path}/classes/main")
+  theDir.mkdirs()
+    final mainSrcDir = "${projectDir}/src/main/java"
+  ant {
+    taskdef(name: 'javac2',
+            classname: 'com.intellij.ant.Javac2',
+            classpath: configurations.javac2.asPath)
+
+
+    javac2(srcdir: mainSrcDir,
+           classpath: configurations.compile.asPath,
+           destdir: "build/classes/main",
+           debug: "on",
+           debugLevel: "lines,vars,source",
+           deprecation: "off",
+           includeAntRuntime: false,
+           optimize: "off",
+           source: sourceCompatibility,
+           target: targetCompatibility
+    )
+  }
+}
+
+//jacoco stuff below....
+
+test {
+//  jvmArgs "-javaagent:${configurations.codeCoverage.singleFile}=destfile=${buildDirName}/coverage-results/jacoco.exec,sessionid=HSServ,append=false",
+//  jvmArgs "-javaagent:build/install/gradleTrunk/lib/org.jacoco.agent-0.5.7.201204190339.jar=destfile=build/reports/coverage-results/jacoco.exec,sessionid=HSServ,append=false",
+//    'Djacoco=true',
+//    '-Xms128m',
+//    '-Xmx512m',
+//    '-XX:MaxPermSize=128m'
+}
+
+//task generateCoverageReport (dependsOn: [test,installApp]) << {
+task generateCoverageReport (dependsOn: [test]) << {
+  ant {
+    taskdef(name:'jacocoreport', classname: 'org.jacoco.ant.ReportTask') {
+//      classpath path: "${rootProject.projectDir.path}/lib/jacocoant.jar"
+      classpath path: "build/install/gradleTrunk/lib/org.jacoco.agent-0.5.7.201204190339.jar"
+//      classpath path: configurations.codeCoverage.singleFile.
+    }
+
+    mkdir dir: "${buildDirName}/reports/coverage"
+
+    jacocoreport {
+      executiondata {
+        fileset(dir: "build/reports/coverage-results") {
+          ant.file file: 'jacoco.exec'
+        }
+      }
+
+      structure(name: project.name) {
+
+        classfiles {
+          fileset dir: "${project.buildDir.path}/classes/main"
+        }
+
+        // this is for Windows
+        sourcefiles(encoding: 'CP1252') {
+          fileset dir: "${project.projectDir.path}/src/main/java"
+        }
+      }
+
+      xml destfile: "build/reports/coverage/jacoco.xml"
+      html destdir: "build/reports/coverage"
+    }
+  }
+}
+
+List<String> argList = ['dibble','dabble']
+
+//java -cp webstart/lib/buildtasks-1.0-SNAPSHOT.jar:webstart/lib/ant-1.8.4.jar com.nurflugel.buildtasks.WhenceJava $*
+task whencejava (type: JavaExec){
+  main = 'com.nurflugel.buildtasks.WhenceJava'
+  classpath = configurations.runtime
+//  args [System.getProperty('classname'),System.getProperty('path')]
+  args argList
+  systemProperty 'simple.message', 'Hello '
+
+
+}
+
+task wj <<{
+  javaexec {
+              main = "com.nurflugel.buildtasks.WhenceJava"
+              classpath = configurations.runtime
+              args = ['dibble','dabble']
+              jvmargs= ['sizzle','saddle']
+  }
+}
+
+task wj2 <<{
+  ant.java(classname: 'com.nurflugel.buildtasks.WhenceJava',
+           fork: true,
+           classpath: "${configurations.runtime.asPath}",
+           args: 'dibble dabble'
+           )
+}
