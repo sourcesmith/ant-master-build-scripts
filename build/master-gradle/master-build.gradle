@@ -21,7 +21,6 @@ configurations {
   codeCoverage
 }
 
-
 println """\
 
 ========================================================================================================
@@ -52,26 +51,25 @@ repositories {
 
 //todo configuration api - get files and use that info to deal with jar numbers and names
 
-dependencies
-    {
-      javac2 'com.intellij:javac2:11.0.3',
-             'com.intellij:annotations:11.0.3',
-             'asm:asm-commons:3.3.1',
-             'asm:asm-parent:3.3.1',
-             'org.jdom:jdom:1.0'
+dependencies {
+  javac2 'com.intellij:javac2:11.0.3',
+         'com.intellij:annotations:11.0.3',
+         'asm:asm-commons:3.3.1',
+         'asm:asm-parent:3.3.1',
+         'org.jdom:jdom:1.0'
 
-      testCompile  'com.google.inject:guice:3.0'
-      testCompile  ('velocity:velocity:1.4'){transtive=true}
-      testCompile  ('org.uncommons:reportng:1.1.2'){transitive=false}
+  testCompile  'com.google.inject:guice:3.0'
+  testCompile  ('velocity:velocity:1.4'){transtive=true}
+  testCompile  ('org.uncommons:reportng:1.1.2'){transitive=false}
 
-      codeCoverage 'org.jacoco:org.jacoco.build:0.5.7.201204190339'
-      codeCoverage 'org.jacoco:org.jacoco.ant:0.5.7.201204190339'
-      runtime      'org.jacoco:org.jacoco.agent:0.5.7.201204190339'
-      codeCoverage 'org.jacoco:org.jacoco.agent:0.5.7.201204190339'
-      codeCoverage 'org.jacoco:org.jacoco.report:0.5.7.201204190339'
-      codeCoverage 'org.jacoco:org.jacoco.core:0.5.7.201204190339'
-      codeCoverage 'org.jacoco:org.jacoco.agent:0.5.7.201204190339'
-    }
+  codeCoverage 'org.jacoco:org.jacoco.build:0.5.7.201204190339'
+  codeCoverage 'org.jacoco:org.jacoco.ant:0.5.7.201204190339'
+  runtime      'org.jacoco:org.jacoco.agent:0.5.7.201204190339'
+  codeCoverage 'org.jacoco:org.jacoco.agent:0.5.7.201204190339'
+  codeCoverage 'org.jacoco:org.jacoco.report:0.5.7.201204190339'
+  codeCoverage 'org.jacoco:org.jacoco.core:0.5.7.201204190339'
+  codeCoverage 'org.jacoco:org.jacoco.agent:0.5.7.201204190339'
+}
 
 test {
   useTestNG()
@@ -84,18 +82,7 @@ test {
     listeners << 'org.uncommons.reportng.HTMLReporter'
     listeners << 'org.uncommons.reportng.JUnitXMLReporter'
   }
-
-//  println "\n\nThe testclasspath is: "
-//  project.sourceSets.test.runtimeClasspath.each {
-//    println "    classpath entry: " + it
-//  }
-//  println "\n\n"
 }
-
-//task testFormat {
-//  dependsOn "formatTestResults"
-//}
-
 
 def titleForDocumentation = archivesBaseName + ' ' + version
 def copyrightString = 'Copyright &#169; 2008&#8211;2012  Douglas Bullard.  All Rights Reserved.'
@@ -114,34 +101,6 @@ javadoc {
   options.footer(copyrightString)
 }
 
-//task formatTestResults (dependsOn: "test") << {
-//  ant.xslt(in: './build/reports/tests/testng-results.xml',
-//           out: './build/reports/tests/index.html',
-//           style: 'src/main/resources/testng-results.xsl',
-//           classpath: '/Users/douglasbullard/Documents/JavaStuff/testng-xslt-1.1.1/lib/saxon-8.7.jar') {
-//    param(name: 'testNgXslt.outputDir', expression: '$outputDir')
-//    param(name: 'testNgXslt.sortTestCaseLinks', expression: 'true')
-//    param(name: 'testNgXslt.testDetailsFilter', expression: "FAIL,SKIP,PASS")
-//  }
-//}
-
-//task transform << {
-//  def transformer = TransformerFactory.newInstance().newTransformer(in: './build/reports/tests/testng-results.xml',
-//                                                                    out: './build/reports/tests/index.html',
-//                                                                    style: 'src/main/resources/testng-results.xsl'
-//                                                                    , classpath: '/Users/douglasbullard/Documents/JavaStuff/testng-xslt-1.1.1/lib/saxon-8.7.jar')
-//  transformer.setParamter(name: 'testNgXslt.testDetailsFilter', expression: "FAIL,SKIP,PASS")
-//  transformer.setParamter(name: 'testNgXslt.outputDir', expression: '$outputDir')
-//  transformer.setParamter(name: 'testNgXslt.sortTestCaseLinks', expression: 'true')
-//  transformer.transform()
-//}
-
-//def factory = TransformerFactory.newInstance()
-//def transformer = factory.newTransformer(new StreamSource(new StringReader(xslt)))
-//transformer.transform(new StreamSource(new StringReader(input)), new StreamResult(System.out))
-
-//  style: '/Users/douglasbullard/Documents/JavaStuff/Google_Code/IvyTools/branches/gradle/testng-results.xsl',
-
 //task zipSrc(type: Zip) {
 //    appendix = 'src'
 //    from sourceSets.main.allSource
@@ -152,7 +111,12 @@ javadoc {
 task publishWebstart(dependsOn: [ 'copyResources', 'copyHelp', 'signJars'], description: 'Create the WebStart distributable.')
 
 
-task copyLibs(type: Copy, dependsOn: jar) {
+task jarHelp(type: Jar, description: "Create the help.jar"){
+  archiveName "help.jar"
+  from 'src/app/web/help'
+}
+
+task copyLibs(type: Copy, dependsOn: [jar, jarHelp]) {
   from configurations.runtime
   from ('build/libs'){
       include '*.jar'
@@ -174,6 +138,7 @@ task copyUnfilteredResources(type: Copy) {
   into('webstart')
 }
 
+  // filter the webstart files, inserting the proper library versions and the subversion branch
 task copyFilteredResources(type: Copy) {
   from('src/app/web'){
     exclude '**/*.png'
@@ -183,16 +148,8 @@ task copyFilteredResources(type: Copy) {
   }
   into('webstart')
 
-//this
-//   codebase="http://ivy-tools.googlecode.com/svn/@subversion_trunk_or_branch@/webstart/"
-//  turns into
-//   codebase="http://ivy-tools.googlecode.com/svn/trunk/webstart/"
-
-  filter(ReplaceTokens, tokens:
-      [subversion_trunk_or_branch: subversion_branch ])
-  doFirst {
-    println '>>>>>>>>>>>>>Value of subversion_branch is ' + subversion_branch
-  }
+  filter(ReplaceTokens, tokens: libraryVersions )
+  filter(ReplaceTokens, tokens: [subversion_trunk_or_branch: subversion_branch] )
 }
 
 task copyResources (dependsOn: [copyFilteredResources,copyUnfilteredResources])
@@ -209,7 +166,7 @@ final signMainJarPropertyName = 'just.sign.main.jar'
 task signJars(dependsOn: copyLibs) << {
   def jarsToSign
   if(System.getProperty(signMainJarPropertyName)){
-      jarsToSign=[file("webstart/lib/GradleScriptVisualizer.jar")]
+      jarsToSign=[file("webstart/lib/GradleScriptVisualizer.jar"),file("webstart/lib/help.jar")]
   }else{
       jarsToSign = file("webstart/lib").listFiles()
   }
@@ -242,10 +199,6 @@ task compileJava (overwrite: true) << {
             classname: 'com.intellij.ant.Javac2',
             classpath: configurations.javac2.asPath)
 
-//    compile.debug=on
-//    compile.optimize=off
-//    compile.deprecation=off
-//    compile.debugLevel=lines,vars,source
 
     javac2(srcdir: mainSrcDir,
            classpath: configurations.compile.asPath,
@@ -258,7 +211,6 @@ task compileJava (overwrite: true) << {
            source: sourceCompatibility,
            target: targetCompatibility
     )
-
   }
 }
 
@@ -323,7 +275,6 @@ task whencejava (type: JavaExec){
 }
 
 task wj <<{
-  tomcatRun.execute()
   javaexec {
               main = "com.nurflugel.buildtasks.WhenceJava"
               classpath = configurations.runtime
@@ -333,7 +284,8 @@ task wj <<{
 }
 
 task wj2 <<{
-  ant.java(classname: 'com.nurflugel.buildtasks.WhenceJava', fork: true,
+  ant.java(classname: 'com.nurflugel.buildtasks.WhenceJava',
+           fork: true,
            classpath: "${configurations.runtime.asPath}",
            args: 'dibble dabble'
            )
