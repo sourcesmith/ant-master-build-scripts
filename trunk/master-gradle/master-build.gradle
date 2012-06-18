@@ -51,7 +51,7 @@ repositories {
 
 dependencies {
   ext.libraryVersions += [
-    asm:        '3.3.1',
+    javac2asm:  '3.3.1',
     intellij:   '11.0.3',
     jacoco:     '0.5.7.201204190339',
     guice:      '3.0',
@@ -61,8 +61,8 @@ dependencies {
 
   javac2 'com.intellij:javac2:'+                 libraryVersions.intellij,
          'com.intellij:annotations:'+            libraryVersions.intellij,
-         'asm:asm-commons:'+                     libraryVersions.asm,
-         'asm:asm-parent:'+                      libraryVersions.asm,
+         'asm:asm-commons:'+                     libraryVersions.javac2asm,
+         'asm:asm-parent:'+                      libraryVersions.javac2asm,
          'org.jdom:jdom:'+                       libraryVersions.jdom
 
   testCompile  'com.google.inject:guice:'+       libraryVersions.guice
