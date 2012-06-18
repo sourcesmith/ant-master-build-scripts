@@ -7,5 +7,6 @@ apply from: 'master-gradle/master-build.gradle'
 version = "1.0-SNAPSHOT"  //used to set Ivy version if we're going to publish
 sourceCompatibility = 1.6
 targetCompatibility = 1.6
+versionClassName = 'com.nurflugel.buildtasks.WhenceJava'
 
 //mainClassName = "com.nurflugel.ivybrowser.ui.IvyBrowserMainFrame"

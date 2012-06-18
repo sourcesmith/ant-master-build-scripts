@@ -19,6 +19,7 @@ configurations {
   reporting
   javac2
   codeCoverage
+  versionUpdate
 }
 
 println """\
@@ -51,31 +52,34 @@ repositories {
 
 dependencies {
   ext.libraryVersions += [
-    javac2asm:  '3.3.1',
-    intellij:   '11.0.3',
-    jacoco:     '0.5.7.201204190339',
-    guice:      '3.0',
-    velocity:   '1.4',
-    reportng:   '1.1.2'
+    javac2asm:      '3.3.1',
+    intellij:       '11.0.3',
+    jacoco:         '0.5.7.201204190339',
+    guice:          '3.0',
+    velocity:       '1.4',
+    reportng:       '1.1.2',
+    version_tool:   '1.1.4_fixed'
   ]
 
-  javac2 'com.intellij:javac2:'+                 libraryVersions.intellij,
-         'com.intellij:annotations:'+            libraryVersions.intellij,
-         'asm:asm-commons:'+                     libraryVersions.javac2asm,
-         'asm:asm-parent:'+                      libraryVersions.javac2asm,
-         'org.jdom:jdom:'+                       libraryVersions.jdom
+  javac2 'com.intellij:javac2:'+                   libraryVersions.intellij,
+         'com.intellij:annotations:'+              libraryVersions.intellij,
+         'asm:asm-commons:'+                       libraryVersions.javac2asm,
+         'asm:asm-parent:'+                        libraryVersions.javac2asm,
+         'org.jdom:jdom:'+                         libraryVersions.jdom
 
-  testCompile  'com.google.inject:guice:'+       libraryVersions.guice
-  testCompile  ('velocity:velocity:'+            libraryVersions.velocity){transtive=true}
-  testCompile  ('org.uncommons:reportng:'+       libraryVersions.reportng){transitive=false}
+  versionUpdate 'com.ryangrier.ant:version_tool:'+ libraryVersions.version_tool
 
-  codeCoverage 'org.jacoco:org.jacoco.build:'+   libraryVersions.jacoco
-  codeCoverage 'org.jacoco:org.jacoco.ant:'+     libraryVersions.jacoco
-  runtime      'org.jacoco:org.jacoco.agent:'+   libraryVersions.jacoco
-  codeCoverage 'org.jacoco:org.jacoco.agent:'+   libraryVersions.jacoco
-  codeCoverage 'org.jacoco:org.jacoco.report:'+  libraryVersions.jacoco
-  codeCoverage 'org.jacoco:org.jacoco.core:'+    libraryVersions.jacoco
-  codeCoverage 'org.jacoco:org.jacoco.agent:'+   libraryVersions.jacoco
+  testCompile  'com.google.inject:guice:'+         libraryVersions.guice
+  testCompile  ('velocity:velocity:'+              libraryVersions.velocity){transtive=true}
+  testCompile  ('org.uncommons:reportng:'+         libraryVersions.reportng){transitive=false}
+
+  codeCoverage 'org.jacoco:org.jacoco.build:'+     libraryVersions.jacoco
+  codeCoverage 'org.jacoco:org.jacoco.ant:'+       libraryVersions.jacoco
+//  runtime      'org.jacoco:org.jacoco.agent:'+     libraryVersions.jacoco
+  codeCoverage 'org.jacoco:org.jacoco.agent:'+     libraryVersions.jacoco
+  codeCoverage 'org.jacoco:org.jacoco.report:'+    libraryVersions.jacoco
+  codeCoverage 'org.jacoco:org.jacoco.core:'+      libraryVersions.jacoco
+  codeCoverage 'org.jacoco:org.jacoco.agent:'+     libraryVersions.jacoco
 }
 
 test {
@@ -266,7 +270,7 @@ task generateCoverageReport (dependsOn: [test]) << {
 
 task whencejava(description: "Call this to find a class hiding in jar in a lib.  -className=com.some.class -DlibPath=parentdir/libdir.  If libPath is omitted, the compile classpath is used")<<{
   logging.captureStandardOutput LogLevel.LIFECYCLE
-  ant.taskdef(name: 'whenceJava', classname: 'com.nurflugel.buildtasks.WhenceJava', classpath: configurations.runtime.asPath)
+  ant.taskdef(name: 'whenceJava', classname: 'com.nurflugel.buildtasks.WhenceJava', classpath: configurations.compile.asPath)
   libPath = System.getProperty('libPath')
   println "libPath = ${libPath}"
   if(libPath){
@@ -277,6 +281,23 @@ task whencejava(description: "Call this to find a class hiding in jar in a lib. 
     ant.whenceJava(classToFind: System.getProperty('className'), libPath: libPath)
   }
 }
+
+task versionMajor(description: "Increment the version number by a major version (i.e., from 1.0 to 2.0)")<<{ updateVersion("Major") }
+task versionMinor(description: "Increment the version number by a major version (i.e., from v. 2.0.0 to v. 2.0.1)")<<{ updateVersion("Minor") }
+task versionPoint(description: "Increment the version number by a major version (i.e., from v. 2.0.1 to v. 2.1.0)")<<{ updateVersion("Point") }
+
+private void updateVersion(String versionUpdateType)
+{
+  //todo throw exception if versionClassName isn't defined.
+  ant.taskdef(name: 'versionupdate', classname: 'com.ryangrier.ant.VersionUpdate', classpath: configurations.versionUpdate.asPath)
+  ant.versionupdate(srcdir: sourceSets.main.java.getSrcDirs().toArray()[0].getAbsolutePath(),
+                    classname: versionClassName,
+                    variablename: "VERSION",
+                    debug: "true",
+                    versionupdatetype: versionUpdateType
+  )
+}
+
 
 task wrapper(type: Wrapper) {
   gradleVersion = '1.0'
