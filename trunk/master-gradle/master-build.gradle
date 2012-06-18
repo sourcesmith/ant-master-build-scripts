@@ -185,10 +185,6 @@ task signJars(dependsOn: copyLibs) << {
   }
 }
 
-task wrapper(type: Wrapper) {
-  gradleVersion = '1.0'
-}
-
 // we overwrite compileJava because the IDEA javac2 compiler is needed for GUI forms.  TODO - figure out how to do this via a flag or something...
 task compileJava (overwrite: true) << {
   theDir = file("${project.buildDir.path}/classes/main")
@@ -261,32 +257,22 @@ task generateCoverageReport (dependsOn: [test]) << {
   }
 }
 
-List<String> argList = ['dibble','dabble']
 
-//java -cp webstart/lib/buildtasks-1.0-SNAPSHOT.jar:webstart/lib/ant-1.8.4.jar com.nurflugel.buildtasks.WhenceJava $*
-task whencejava (type: JavaExec){
-  main = 'com.nurflugel.buildtasks.WhenceJava'
-  classpath = configurations.runtime
-//  args [System.getProperty('classname'),System.getProperty('path')]
-  args argList
-  systemProperty 'simple.message', 'Hello '
-
-
-}
-
-task wj <<{
-  javaexec {
-              main = "com.nurflugel.buildtasks.WhenceJava"
-              classpath = configurations.runtime
-              args = ['dibble','dabble']
-              jvmargs= ['sizzle','saddle']
+task whencejava(description: "Call this to find a class hiding in jar in a lib.  -className=com.some.class -DlibPath=parentdir/libdir.  If libPath is omitted, the compile classpath is used")<<{
+  logging.captureStandardOutput LogLevel.LIFECYCLE
+  ant.taskdef(name: 'whenceJava', classname: 'com.nurflugel.buildtasks.WhenceJava', classpath: configurations.runtime.asPath)
+  libPath = System.getProperty('libPath')
+  println "libPath = ${libPath}"
+  if(libPath){
+    ant.whenceJava(classToFind: System.getProperty('className'), libPath: libPath)
+  }else{
+    libPath=    configurations.compile.asPath
+    println "libPath = ${libPath}"
+    ant.whenceJava(classToFind: System.getProperty('className'), libPath: libPath)
   }
 }
 
-task wj2 <<{
-  ant.java(classname: 'com.nurflugel.buildtasks.WhenceJava',
-           fork: true,
-           classpath: "${configurations.runtime.asPath}",
-           args: 'dibble dabble'
-           )
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '1.0'
 }
