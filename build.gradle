@@ -18,7 +18,7 @@ ext.libraryVersions = [
     ant:                 '1.8.4'
 ]
 
-apply from: 'build/master-gradle/master-build.gradle'
+apply from: 'master-gradle/master-build.gradle'
 apply from: 'dependencies.gradle'
 
 
