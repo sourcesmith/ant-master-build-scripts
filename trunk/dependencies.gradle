@@ -1,13 +1,36 @@
+ext.libraryVersions = [
+    jdom:                '1.0',
+    glazedLists:         '1.8.0',
+    xstream:             '1.2',
+    svnkit:              '1.7.4-v1',
+    jtidy:               '04aug2000r7-dev',
+    version_tool:        '1.1.4_fixed',
+    buildtasks:          '1.0-SNAPSHOT',
+    commons_logging:     '1.0.4',
+    commons_lang:        '2.4',
+    commons_collections: '3.2.1',
+    commons_io:          '2.2',
+    forms_rt:            '11.0.3',
+    log4j:               '1.2.15',
+    testng:              '6.4',
+    asm:                 '3.1',
+    jhall:               '2.0.6',
+    ant:                 '1.8.4'
+]
+
+configurations {
+  source
+}
+
 dependencies {
 
     compile 'org.apache.ant:ant:'+               libraryVersions.ant,
             'com.nurflugel:buildtasks:'+         libraryVersions.buildtasks,
             'com.ryangrier.ant:version_tool:'+   libraryVersions.version_tool
 
-
     runtime 'org.apache.ant:ant:'+               libraryVersions.ant,
             'com.nurflugel:buildtasks:'+         libraryVersions.buildtasks
 
-    source 'org.apache.ant:ant:'+               libraryVersions.ant,
-           'com.ryangrier.ant:version_tool:'+   libraryVersions.version_tool
+    source 'org.apache.ant:ant:'+                libraryVersions.ant,
+           'com.ryangrier.ant:version_tool:'+    libraryVersions.version_tool
 }

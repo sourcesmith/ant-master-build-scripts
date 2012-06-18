@@ -49,26 +49,33 @@ repositories {
 //    }
 }
 
-//todo configuration api - get files and use that info to deal with jar numbers and names
-
 dependencies {
-  javac2 'com.intellij:javac2:11.0.3',
-         'com.intellij:annotations:11.0.3',
-         'asm:asm-commons:3.3.1',
-         'asm:asm-parent:3.3.1',
-         'org.jdom:jdom:1.0'
+  ext.libraryVersions += [
+    asm:        '3.3.1',
+    intellij:   '11.0.3',
+    jacoco:     '0.5.7.201204190339',
+    guice:      '3.0',
+    velocity:   '1.4',
+    reportng:   '1.1.2'
+  ]
 
-  testCompile  'com.google.inject:guice:3.0'
-  testCompile  ('velocity:velocity:1.4'){transtive=true}
-  testCompile  ('org.uncommons:reportng:1.1.2'){transitive=false}
+  javac2 'com.intellij:javac2:'+                 libraryVersions.intellij,
+         'com.intellij:annotations:'+            libraryVersions.intellij,
+         'asm:asm-commons:'+                     libraryVersions.asm,
+         'asm:asm-parent:'+                      libraryVersions.asm,
+         'org.jdom:jdom:'+                       libraryVersions.jdom
 
-  codeCoverage 'org.jacoco:org.jacoco.build:0.5.7.201204190339'
-  codeCoverage 'org.jacoco:org.jacoco.ant:0.5.7.201204190339'
-  runtime      'org.jacoco:org.jacoco.agent:0.5.7.201204190339'
-  codeCoverage 'org.jacoco:org.jacoco.agent:0.5.7.201204190339'
-  codeCoverage 'org.jacoco:org.jacoco.report:0.5.7.201204190339'
-  codeCoverage 'org.jacoco:org.jacoco.core:0.5.7.201204190339'
-  codeCoverage 'org.jacoco:org.jacoco.agent:0.5.7.201204190339'
+  testCompile  'com.google.inject:guice:'+       libraryVersions.guice
+  testCompile  ('velocity:velocity:'+            libraryVersions.velocity){transtive=true}
+  testCompile  ('org.uncommons:reportng:'+       libraryVersions.reportng){transitive=false}
+
+  codeCoverage 'org.jacoco:org.jacoco.build:'+   libraryVersions.jacoco
+  codeCoverage 'org.jacoco:org.jacoco.ant:'+     libraryVersions.jacoco
+  runtime      'org.jacoco:org.jacoco.agent:'+   libraryVersions.jacoco
+  codeCoverage 'org.jacoco:org.jacoco.agent:'+   libraryVersions.jacoco
+  codeCoverage 'org.jacoco:org.jacoco.report:'+  libraryVersions.jacoco
+  codeCoverage 'org.jacoco:org.jacoco.core:'+    libraryVersions.jacoco
+  codeCoverage 'org.jacoco:org.jacoco.agent:'+   libraryVersions.jacoco
 }
 
 test {
@@ -124,7 +131,7 @@ task copyLibs(type: Copy, dependsOn: [jar, jarHelp]) {
   into 'webstart/lib'
 }
 
-//todo get this from Subversion !!!!!
+//todo get this from Subversion via buildtasks or svn plugin !!!!!
 def subversion_branch=   'trunk'
 
 // have to split the copying up as filtering messes up images
@@ -162,11 +169,10 @@ task copyHelp(type: Copy) {
 // if this is set to anything, we only sign the main application jar.  If not set, ALL jars are signed (slow!)
 final signMainJarPropertyName = 'just.sign.main.jar'
 
-
 task signJars(dependsOn: copyLibs) << {
   def jarsToSign
   if(System.getProperty(signMainJarPropertyName)){
-      jarsToSign=[file("webstart/lib/GradleScriptVisualizer.jar"),file("webstart/lib/help.jar")]
+      jarsToSign=[file("webstart/lib/${rootProject.name}.jar"),file("webstart/lib/help.jar")]
   }else{
       jarsToSign = file("webstart/lib").listFiles()
   }
@@ -184,6 +190,7 @@ task signJars(dependsOn: copyLibs) << {
     }
   }
 }
+
 
 // we overwrite compileJava because the IDEA javac2 compiler is needed for GUI forms.  TODO - figure out how to do this via a flag or something...
 task compileJava (overwrite: true) << {
@@ -257,7 +264,6 @@ task generateCoverageReport (dependsOn: [test]) << {
   }
 }
 
-
 task whencejava(description: "Call this to find a class hiding in jar in a lib.  -className=com.some.class -DlibPath=parentdir/libdir.  If libPath is omitted, the compile classpath is used")<<{
   logging.captureStandardOutput LogLevel.LIFECYCLE
   ant.taskdef(name: 'whenceJava', classname: 'com.nurflugel.buildtasks.WhenceJava', classpath: configurations.runtime.asPath)
@@ -271,7 +277,6 @@ task whencejava(description: "Call this to find a class hiding in jar in a lib. 
     ant.whenceJava(classToFind: System.getProperty('className'), libPath: libPath)
   }
 }
-
 
 task wrapper(type: Wrapper) {
   gradleVersion = '1.0'
