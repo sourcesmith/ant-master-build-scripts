@@ -1,0 +1,88 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+
+apply from: 'master-build.gradle'
+
+configurations {
+  presigned
+  dist
+}
+
+// Note that we have to tell Gradle what's expected to run before this - Gradle doesn't honor dependency order in the tasks as specified below
+task publishWebstart(dependsOn: [ 'copyResources', 'copyHelp', 'signJars'], description: 'Create the WebStart distributable.')
+
+
+task jarHelp(type: Jar, description: "Create the help.jar"){
+  archiveName "help.jar"
+  from 'src/app/web/help'
+}
+
+task copyLibs(type: Copy, dependsOn: [jar, jarHelp]) {
+  from configurations.runtime
+  from ('build/libs'){
+      include '*.jar'
+  }
+  into 'webstart/lib'
+}
+
+//todo get this from Subversion via buildtasks or svn plugin !!!!!
+def subversion_branch=   'trunk'
+
+// have to split the copying up as filtering messes up images
+task copyUnfilteredResources(type: Copy) {
+  from('src/app/web'){
+    include '**/*.png'
+    include '**/*.jpg'
+    include '**/*.pdf'
+    include '**/*.gif'
+  }
+  into('webstart')
+}
+
+  // filter the webstart files, inserting the proper library versions and the subversion branch
+task copyFilteredResources(type: Copy) {
+  from('src/app/web'){
+    exclude '**/*.png'
+    exclude '**/*.jpg'
+    exclude '**/*.pdf'
+    exclude '**/*.gif'
+  }
+  into('webstart')
+
+  filter(ReplaceTokens, tokens: libraryVersions )
+  filter(ReplaceTokens, tokens: [subversion_trunk_or_branch: subversion_branch] )
+}
+
+task copyResources (dependsOn: [copyFilteredResources,copyUnfilteredResources])
+
+task copyHelp(type: Copy) {
+  from('src/app/help')
+  into('webstart/html')
+}
+
+// if this is set to anything, we only sign the main application jar.  If not set, ALL jars are signed (slow!)
+final signMainJarPropertyName = 'just.sign.main.jar'
+
+task signJars(dependsOn: copyLibs) << {
+  def jarsToSign
+  if(System.getProperty(signMainJarPropertyName)){
+      jarsToSign=[file("webstart/lib/${rootProject.name}.jar"),file("webstart/lib/help.jar")]
+  }else{
+      jarsToSign = file("webstart/lib").listFiles()
+  }
+
+  jarsToSign.each {
+    println "Generating classes for package: " + it
+    try {
+        ant.signjar(jar: it,
+                    keypass: keypass,
+                    keystore: keystore,
+                    alias: alias,
+                    storepass: storepass)
+    } catch (Exception e) {
+        println 'Got an exception signing jar, but continuing: ' +e
+    }
+  }
+}
+
+
