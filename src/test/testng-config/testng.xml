@@ -9,7 +9,6 @@
       </run>
     </groups>
       <packages>
-            <!--<package name="com.nurflugel.util.gradlescriptvisualizer.domain.*" />-->
             <package name="com.nurflugel.*" />
       </packages>
   </test>

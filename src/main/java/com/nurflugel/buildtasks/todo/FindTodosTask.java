@@ -23,7 +23,7 @@ import static org.apache.tools.ant.Project.MSG_VERBOSE;
  * This task goes through the baseDir and finds any todos in there. It will try to assign them to a user if there's a user ID or alias in the same
  * line. It genrates a text report, and reports the output to TeamCity for tracking.
  */
-@SuppressWarnings({ "CloneableClassWithoutClone" })
+@SuppressWarnings({ "CloneableClassWithoutClone", "TodoComment" })
 public class FindTodosTask extends Task
 {
   private static final String VALUE        = "' value='";
