@@ -84,7 +84,7 @@ test {
   useTestNG()
   testLogging.showStandardStreams = true
   options.suites("src/test/testng-config/testng.xml")
-  systemProperties "org.uncommons.reportng.stylesheet": "${projectDir}/src/test/resources/hudsonesque.css"
+  systemProperties "org.uncommons.reportng.stylesheet": "${projectDir}/master-gradle/hudsonesque.css"
   systemProperties "running.in.gradle": "yes"
   workingDir = 'build/'
   options {

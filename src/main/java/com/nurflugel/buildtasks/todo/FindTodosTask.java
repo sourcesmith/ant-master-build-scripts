@@ -226,6 +226,8 @@ public class FindTodosTask extends Task
   @SuppressWarnings({ "unchecked" })
   private void findTodosInFile(File file, List<TodoItem> todos) throws IOException
   {
+    System.out.println("file = " + file.getAbsolutePath());
+
     List<String> lines      = readLines(file);
     int          lineNumber = 0;
 
