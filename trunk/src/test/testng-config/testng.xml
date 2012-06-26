@@ -1,0 +1,19 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="AntScriptVisualizer Suite">
+
+  <test verbose="1" name="Gradle parser tests" annotations="JDK">
+    <groups>
+      <run>
+        <include name="unit"/>
+        <exclude name="failed"  />
+      </run>
+    </groups>
+      <packages>
+            <!--<package name="com.nurflugel.util.gradlescriptvisualizer.domain.*" />-->
+            <package name="com.nurflugel.*" />
+      </packages>
+  </test>
+
+
+
+</suite>
