@@ -20,7 +20,7 @@ import static org.apache.tools.ant.Project.MSG_INFO;
 import static org.apache.tools.ant.Project.MSG_VERBOSE;
 
 /**
- * This task goes through the baseDir and finds any todos in there. It will try to assign them to a user if there's a user ID or alias in the same
+ * This task goes through the baseDir and finds any t*dos in there. It will try to assign them to a user if there's a user ID or alias in the same
  * line. It genrates a text report, and reports the output to TeamCity for tracking.
  */
 @SuppressWarnings({ "CloneableClassWithoutClone", "TodoComment" })
@@ -28,17 +28,17 @@ public class FindTodosTask extends Task
 {
   private static final String VALUE        = "' value='";
   private static final String END_TAG      = "']";
-  private String              TEAMCITY_TAG = "##teamcity[buildStatisticValue key='numberOf";
+  private static final String TEAMCITY_TAG = "##teamcity[buildStatisticValue key='numberOf";
 
-  /** The dir to be scanned for todos. */
+  /** The dir to be scanned for t*dos. */
   private File baseDir;
 
   /** Where the report goes. */
   private File reportDir;
 
   /**
-   * The phrase to search for - i.e., "todo", "CODEREVIEW" - actually, a comma-delimited list of terms ("codereview,codereviewresult"). Optional, if
-   * blank, "todo" is used.
+   * The phrase to search for - i.e., "t*do", "CODEREVIEW" - actually, a comma-delimited list of terms ("codereview,codereviewresult"). Optional, if
+   * blank, "t*do" is used.
    */
   private String searchPhrase = "todo";
 
@@ -172,9 +172,9 @@ public class FindTodosTask extends Task
   }
 
   /**
-   * Get all the todos from the files in the directory.
+   * Get all the t*dos from the files in the directory.
    *
-   * @param  dir    the file or dir to examine for todos
+   * @param  dir    the file or dir to examine for t*dos
    * @param  users  the list of users
    */
   void findTodos(File dir, List<User> users) throws IOException
@@ -186,10 +186,10 @@ public class FindTodosTask extends Task
   }
 
   /**
-   * Recursive method to delve into the file or dir to find all the todos.
+   * Recursive method to delve into the file or dir to find all the t*dos.
    *
    * @param  file   the file or dir to examine
-   * @param  todos  the list of todos to add to
+   * @param  todos  the list of t*dos to add to
    */
   private void findTodosInDir(File file, List<TodoItem> todos) throws IOException
   {
@@ -218,10 +218,10 @@ public class FindTodosTask extends Task
   }
 
   /**
-   * Finds the todos in a particular file.
+   * Finds the t*dos in a particular file.
    *
    * @param  file   the file to examine
-   * @param  todos  the list of todos to add to
+   * @param  todos  the list of t*dos to add to
    */
   @SuppressWarnings({ "unchecked" })
   private void findTodosInFile(File file, List<TodoItem> todos) throws IOException
@@ -244,10 +244,10 @@ public class FindTodosTask extends Task
   }
 
   /**
-   * go through all of the todos, assign them to the User. If you can't find which user it belongs to, put it in "unknown".
+   * go through all of the t*dos, assign them to the User. If you can't find which user it belongs to, put it in "unknown".
    *
    * @param  users     the list of Users
-   * @param  allTodos  all of the todos found
+   * @param  allTodos  all of the t*dos found
    */
   private void assembleUserTodos(List<User> users, List<TodoItem> allTodos)
   {
@@ -255,7 +255,7 @@ public class FindTodosTask extends Task
     {
       String comment = todo.getComment().toUpperCase();
 
-      all.addTodo(todo);  // add to all todos
+      all.addTodo(todo);  // add to all t*dos
 
       boolean foundUser = false;
 

@@ -1,12 +1,48 @@
-apply plugin: 'application'
+apply plugin: 'java'
 
 apply from: 'dependencies.gradle'
 apply from: 'master-gradle/master-build.gradle'
 
 
-version = "1.0-SNAPSHOT"  //used to set Ivy version if we're going to publish
+version = "1.0.1-SNAPSHOT"  //used to set Ivy version if we're going to publish
 sourceCompatibility = 1.6
 targetCompatibility = 1.6
 versionClassName = 'com.nurflugel.buildtasks.WhenceJava'
 
-//mainClassName = "com.nurflugel.ivybrowser.ui.IvyBrowserMainFrame"
+mainClassName = "com.nurflugel.buildtasks.WhenceJava"
+
+
+task myJar(type: Jar)
+
+artifacts {
+    archives myJar
+}
+
+//repositories {
+//    flatDir {
+//        name "fileRepo"
+//        dirs "repo"
+//        artifactPattern "http://www.nurflugel.com/Home/repository/[organisation]/[module]/[revision]/[artifact]-[revision].[type]"
+//        ivyPattern      "http://www.nurflugel.com/Home/repository/[organisation]/[module]/[revision]/[artifact]-[revision].ivy.xml"
+//        dirs "/Users/douglas_bullard/Documents/Nurflugel.com website as a WAR/html/Home/repository"
+//    }
+//}
+
+uploadArchives {
+    repositories {
+//        add project.repositories.fileRepo
+        add project.repositories.ivy
+        ivy {
+            credentials {
+                username "dbullard"
+                password "1Lovekayna"
+            }
+            url "http://www.nurflugel.com/Home/repository"
+        }
+    }
+}
+
+//task dibble() <<{
+//  WhenceJavaText text=new WhenceJavaText();
+//  text.execute();
+//}
