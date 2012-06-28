@@ -135,7 +135,6 @@ public class ValidatePropertiesTask extends Task
       String property    = line.substring(0, secondIndex);
 
       definedproperties.add(property);
-
       line = line.substring(secondIndex + 1);
     }
   }
