@@ -1,42 +1,44 @@
 package com.nurflugel.buildtasks.todo;
 
-import org.apache.commons.lang.StringUtils;
 import java.util.*;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.apache.commons.lang.StringUtils.substringAfter;
+import static org.apache.commons.lang.StringUtils.substringBefore;
 
 /** This represents a user and all their aliases. */
-public class User
+public class User extends NameWithAliases
 {
-  static final String ALL     = "all";
-  static final String UNKNOWN = "unknown";
-
-  /** The user id - this should be RACF, as it's always unique. */
-  private String id;
-
-  /** This can be anything the user is called by - in my case, doug, dbulla, dgb, douglas, etc. */
-  private final Set<String>    aliases = new HashSet<String>();
+  static final String          ALL     = "all";
+  static final String          UNKNOWN = "unknown";
   private final List<TodoItem> todos   = new ArrayList<TodoItem>();
 
-  public User(String id)
+  public User(String name)
   {
-    this.id = id;
+    super(name);
 
-    if (!id.equals(ALL) && !id.equals(UNKNOWN))  // these guys don't get default aliases
+    if (!name.equals(ALL) && !name.equals(UNKNOWN))  // these guys don't get default aliases
     {
-      aliases.add(id);                           // add the ID, so that's always in the list
+      aliases.add(name);                             // add the ID, so that's always in the list
     }
   }
 
-  public User(String id, String[] aliasList)
+  /** Get the user from the token and add it to the list. */
+  void getUser(List<NameWithAliases> users, String[] tokens)
   {
-    this(id);
-
-    for (String alias : aliasList)
-    {
-      if (!StringUtils.isEmpty(alias))
-      {
-        aliases.add(alias);
-      }
-    }
+    // for (String token : tokens)
+    // {
+    // String id          = substringBefore(token, "(");
+    // String aliasesText = substringAfter(token, "(");
+    //
+    // aliasesText = substringBefore(aliasesText, ")");
+    //
+    // String[] aliases = aliasesText.split(";");
+    // User     user    = new User(id, aliases);
+    //
+    // users.add(user);
+    //
+    // }
   }
 
   // -------------------------- OTHER METHODS --------------------------
@@ -45,55 +47,12 @@ public class User
     todos.add(todo);
   }
 
-  // ------------------------ CANONICAL METHODS ------------------------
-  @Override
-  public boolean equals(Object o)
-  {
-    if (this == o)
-    {
-      return true;
-    }
-
-    if ((o == null) || (getClass() != o.getClass()))
-    {
-      return false;
-    }
-
-    User user = (User) o;
-
-    if ((id != null) ? (!id.equals(user.id))
-                     : (user.id != null))
-    {
-      return false;
-    }
-
-    return true;
-  }
-
-  @Override
-  public int hashCode()
-  {
-    return (id != null) ? id.hashCode()
-                        : 0;
-  }
-
   @Override
   public String toString()
   {
     return "User{"
              + "aliases=" + ((aliases == null) ? null
-                                               : Arrays.asList(aliases)) + ", id='" + id + '\'' + ", todos=" + todos + '}';
-  }
-
-  // --------------------- GETTER / SETTER METHODS ---------------------
-  public Set<String> getAliases()
-  {
-    return aliases;
-  }
-
-  public String getId()
-  {
-    return id;
+                                               : asList(aliases)) + ", id='" + name + '\'' + ", todos=" + todos + '}';
   }
 
   public List<TodoItem> getTodos()

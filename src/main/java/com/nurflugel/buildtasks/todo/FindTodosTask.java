@@ -1,9 +1,6 @@
 package com.nurflugel.buildtasks.todo;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import java.io.File;
 import java.io.IOException;
@@ -15,7 +12,6 @@ import static com.nurflugel.buildtasks.todo.User.*;
 import static org.apache.commons.io.FileUtils.readLines;
 import static org.apache.commons.io.FileUtils.writeLines;
 import static org.apache.commons.lang.StringUtils.*;
-import static org.apache.tools.ant.Project.MSG_ERR;
 import static org.apache.tools.ant.Project.MSG_INFO;
 import static org.apache.tools.ant.Project.MSG_VERBOSE;
 
@@ -65,7 +61,11 @@ public class FindTodosTask extends Task
   {
     validateProperties();
 
-    List<User> users = parseUsers();
+    String[]   tokens = LineSplitter.splitLine(namePattern);
+    List<User> users  = null;  // User.parseUsers();
+
+    users.add(all);
+    users.add(unknown);
 
     try
     {
@@ -98,77 +98,6 @@ public class FindTodosTask extends Task
     {
       throw new BuildException("You must specify a reportDir attribute");
     }
-  }
-
-  /**
-   * Take the name pattern and parse it into a list of users. The pattern template looks like this:
-   *
-   * <p>users[dbulla(dgb;doug;dbulla),snara(snara;sunitha),bren,dlabar,mkshir]</p>
-   *
-   * @return  a list of User. If none are specified, then the list is empty.
-   *
-   * @throws  BuildException  if the line isn't in the expected format
-   */
-  List<User> parseUsers()
-  {
-    List<User> users = new ArrayList<User>();
-
-    users.add(all);
-    users.add(unknown);
-
-    // if nothing is listed, return an empty list
-    if (isEmpty(namePattern) || "${namePattern}".equals(namePattern))
-    {
-      return users;
-    }
-
-    // First, validate that the line starts with the word "users"
-    String         line           = namePattern;
-    BuildException buildException = new BuildException("Name pattern " + namePattern
-                                                         + " was not in the expected pattern of 'userID(alias1;alias2...),user2ID(alias1...),user3ID...");
-
-    // reject wrong parenthesis types
-    if (containsAny(namePattern, "{}[]"))
-    {
-      throw buildException;
-    }
-
-    try
-    {
-      if (isEmpty(line))
-      {
-        return users;
-      }
-
-      // break the line up into users
-      String[] tokens = line.split(",");
-
-      for (String token : tokens)
-      {
-        getUser(users, token);
-      }
-    }
-    catch (Exception e)
-    {
-      log("error parsing tokens", e, MSG_ERR);
-      throw buildException;
-    }
-
-    return users;
-  }
-
-  /** Get the user from the token and add it to the list. */
-  private void getUser(List<User> users, String token)
-  {
-    String id          = substringBefore(token, "(");
-    String aliasesText = substringAfter(token, "(");
-
-    aliasesText = substringBefore(aliasesText, ")");
-
-    String[] aliases = aliasesText.split(";");
-    User     user    = new User(id, aliases);
-
-    users.add(user);
   }
 
   /**
@@ -325,8 +254,8 @@ public class FindTodosTask extends Task
 
     if (!todos.isEmpty())
     {
-      lines.add("Report for user " + user.getId() + ':');
-      log("   Writing output for user " + user.getId(), MSG_INFO);
+      lines.add("Report for user " + user.getName() + ':');
+      log("   Writing output for user " + user.getName(), MSG_INFO);
 
       for (TodoItem todo : todos)
       {
@@ -354,7 +283,7 @@ public class FindTodosTask extends Task
       {
         if (!user.getTodos().isEmpty())
         {
-          log(tag + '_' + user.getId() + VALUE + user.getTodos().size() + END_TAG);
+          log(tag + '_' + user.getName() + VALUE + user.getTodos().size() + END_TAG);
         }
       }
     }
@@ -391,5 +320,10 @@ public class FindTodosTask extends Task
   public void setSearchPhrase(String searchPhrase)
   {
     this.searchPhrase = searchPhrase;
+  }
+
+  public String getSearchPhrase()
+  {
+    return searchPhrase;
   }
 }
