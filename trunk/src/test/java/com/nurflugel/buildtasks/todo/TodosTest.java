@@ -14,11 +14,12 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 /** Tests for the FindTodosTask task. */
-@Test(groups = "unit")
+@Test(groups = {"todos","failed"})
+//@Test(groups = {"todos"})
 public class TodosTest
 {
   // -------------------------- OTHER METHODS --------------------------
-  @Test(groups = "unit")
+  @Test
   public void testFiles() throws IOException
   {
     FindTodosTask task = new FindTodosTask();

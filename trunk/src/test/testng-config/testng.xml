@@ -1,10 +1,24 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="BuildTasks Suite">
 
-  <test verbose="1" name="unit tests" annotations="JDK">
+  <test verbose="1" name="Whence Java tests" annotations="JDK">
     <groups>
       <run>
-        <include name="unit"/>
+        <!--<include name="todos"/>-->
+        <include name="whencejava"/>
+        <exclude name="failed"  />
+      </run>
+    </groups>
+      <packages>
+            <package name="com.nurflugel.*" />
+      </packages>
+  </test>
+
+  <test verbose="1" name="Todos tests" annotations="JDK">
+    <groups>
+      <run>
+        <include name="todos"/>
+        <!--<include name="whencejava"/>-->
         <exclude name="failed"  />
       </run>
     </groups>
