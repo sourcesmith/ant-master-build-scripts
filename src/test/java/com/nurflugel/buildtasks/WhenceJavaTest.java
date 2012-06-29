@@ -11,12 +11,20 @@ import java.io.PrintStream;
 import java.util.List;
 import static org.testng.Assert.assertEquals;
 
-/** Created with IntelliJ IDEA. User: douglas_bullard Date: 6/26/12 Time: 19:40 To change this template use File | Settings | File Templates. */
-@Test
+@Test(groups = "whencejava")
 public class WhenceJavaTest
 {
   File                dibbleFile      = new File("dibble");
   private PrintStream origionalStream;
+  private final String[] usageOutput = new String[]{
+    "usage: build whenceJava -Dpath=xxxx -Dclass=SomeClass",                                                                        //
+    "       path = comma delimited list of dirs or archives to search.",                                                            //
+    "       class = name of class to search for.",                                                                                  //
+    "Example: whencejava -Dclass=Vector -Dpath=lib,loaderLib/struts  - finds the jar and packages structure for the Vector class",  //
+    "Example: whencejava -Dclass=*Vector -Dpath=lib  - finds the jar and packages structure for any class ending with Vector",      //
+    "Example: whencejava -Dclass=Vector* -Dpath=lib  - finds the jar and packages structure for any class beginning with Vector",   //
+    "Example: whencejava -Dclass=*Vector* -Dpath=lib - finds the jar and packages structure for any class with Vector as part of it's name"
+  };
 
   // -------------------------- OTHER METHODS --------------------------
   @AfterTest
@@ -44,19 +52,7 @@ public class WhenceJavaTest
 
     whenceJava.run();
 
-    String[] expectedOutput =
-    {
-      "WhenceJava.run",                                                                                                               //
-      "usage: build whenceJava -Dpath=xxxx -Dclass=SomeClass",                                                                        //
-      "       path = comma delimited list of dirs or archives to search.",                                                            //
-      "       class = name of class to search for.",                                                                                  //
-      "Example: whencejava -Dclass=Vector -Dpath=lib,loaderLib/struts  - finds the jar and packages structure for the Vector class",  //
-      "Example: whencejava -Dclass=*Vector -Dpath=lib  - finds the jar and packages structure for any class ending with Vector",      //
-      "Example: whencejava -Dclass=Vector* -Dpath=lib  - finds the jar and packages structure for any class beginning with Vector",   //
-      "Example: whencejava -Dclass=*Vector* -Dpath=lib - finds the jar and packages structure for any class with Vector as part of it's name"
-    };
-
-    validateExpectedOutput(expectedOutput);
+    validateExpectedOutput(usageOutput);
   }
 
   private void validateExpectedOutput(String[] expectedOutput) throws IOException
@@ -79,18 +75,12 @@ public class WhenceJavaTest
     whenceJava.setClassToFind("*Vector*");
     whenceJava.run();
 
-    String[] expectedOutput =
-    {
-      "WhenceJava.run",                                                                                                               //
-      "usage: build whenceJava -Dpath=xxxx -Dclass=SomeClass",                                                                        //
-      "       path = comma delimited list of dirs or archives to search.",                                                            //
-      "       class = name of class to search for.",                                                                                  //
-      "Example: whencejava -Dclass=Vector -Dpath=lib,loaderLib/struts  - finds the jar and packages structure for the Vector class",  //
-      "Example: whencejava -Dclass=*Vector -Dpath=lib  - finds the jar and packages structure for any class ending with Vector",      //
-      "Example: whencejava -Dclass=Vector* -Dpath=lib  - finds the jar and packages structure for any class beginning with Vector",   //
-      "Example: whencejava -Dclass=*Vector* -Dpath=lib - finds the jar and packages structure for any class with Vector as part of it's name"
-    };
+   
 
-    validateExpectedOutput(expectedOutput);
+    validateExpectedOutput(usageOutput);
   }
+  //todo test no valid dir
+  //todo test no files in dir
+  //todo test find known class in dir
+  
 }
