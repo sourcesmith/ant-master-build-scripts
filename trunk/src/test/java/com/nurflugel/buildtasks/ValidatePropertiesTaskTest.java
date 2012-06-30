@@ -22,22 +22,35 @@ public class ValidatePropertiesTaskTest
   @Test
   public void testParseLineForProp()
   {
-    ValidatePropertiesTask task  = new ValidatePropertiesTask();
-    Set<String>            props = new HashSet<String>();
+    Set<String> props = new HashSet<String>();
 
-    task.parseLineForProps(props, "dibble dabble ${tribble}");
+    ValidatePropertiesTask.parseLineForProps(props, "dibble dabble ${tribble}");
     assertTrue(props.contains("tribble"));
   }
 
   @Test
   public void testParseLineForProps()
   {
-    ValidatePropertiesTask task  = new ValidatePropertiesTask();
-    Set<String>            props = new HashSet<String>();
+    Set<String> props = new HashSet<String>();
 
-    task.parseLineForProps(props, "dibble dabble ${tribble} ${travel} dididlksjlksjls ${me}");
+    ValidatePropertiesTask.parseLineForProps(props, "dibble dabble ${tribble} ${travel} dididlksjlksjls ${me}");
     assertTrue(props.contains("tribble"));
     assertTrue(props.contains("travel"));
     assertTrue(props.contains("me"));
+  }
+
+  @Test
+  public void testLinesForDefinitions()
+  {
+    String[]    lines = { "<available property=\"dibble\" and such", "<setPropertyFromEnvstore propertyName=\"travel\" to a fro" };
+    Set<String> props = new HashSet<String>();
+
+    for (String line : lines)
+    {
+      ValidatePropertiesTask.parseLineForDefinations(props, line);
+    }
+
+    assertTrue(props.contains("dibble"));
+    assertTrue(props.contains("travel"));
   }
 }
