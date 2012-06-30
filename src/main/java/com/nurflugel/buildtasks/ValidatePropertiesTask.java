@@ -1,5 +1,6 @@
 package com.nurflugel.buildtasks;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
@@ -80,10 +81,10 @@ public class ValidatePropertiesTask extends Task
 
   private Map getProjectProperties()
   {
-    Project project = getProject();
+    Project theProject = getProject();
 
-    return (project != null) ? project.getProperties()
-                             : new Hashtable();
+    return (theProject != null) ? theProject.getProperties()
+                                : new Hashtable();
   }
 
   private Set<String> parseExceptions()
@@ -99,7 +100,7 @@ public class ValidatePropertiesTask extends Task
     return notMissingProperties;
   }
 
-  void parseLineForProps(Set<String> properties, String line)
+  static void parseLineForProps(Set<String> properties, String line)
   {
     String line1 = line.trim();
 
@@ -119,31 +120,28 @@ public class ValidatePropertiesTask extends Task
   }
 
   /** Go through any custom ways of setting properties outside of property files. */
-  private void parseLineForDefinations(Set<String> definedproperties, String line)
+  static void parseLineForDefinations(Set<String> definedProperties, String line)
   {
-    String[] defs = { "<available property=\"", "<setPropertyFromEnvstore propertyName=\"" };
+    String[] customDefs = { "<available property=\"", "<setPropertyFromEnvstore propertyName=\"" };
 
-    for (String def : defs)
+    for (String def : customDefs)
     {
-      parseLineForDefinitions(definedproperties, line, def);
+      parseLineForDefinitions(definedProperties, line, def);
     }
   }
 
-  private void parseLineForDefinitions(Set<String> definedProperties, String line, String def)
+  private static void parseLineForDefinitions(Set<String> definedProperties, String theLine, String def)
   {
-    String line1 = line;
+    String line = theLine;
 
-    while (line1.contains(def))
+    while (line.contains(def))
     {
-      int firstIndex = line1.indexOf(def);
+      line = substringAfter(line, def);
 
-      line1 = line1.substring(firstIndex + def.length());
-
-      int    secondIndex = line1.indexOf('\"');
-      String property    = line1.substring(0, secondIndex);
+      String property = substringBefore(line, "\"");
 
       definedProperties.add(property);
-      line1 = line1.substring(secondIndex + 1);
+      line = substringAfter(line, "\"");
     }
   }
 
