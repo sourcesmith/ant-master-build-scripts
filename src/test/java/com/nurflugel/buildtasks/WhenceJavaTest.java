@@ -33,7 +33,11 @@ public class WhenceJavaTest
     validateExpectedOutput(whenceJava.getOutputLines(), USAGE_OUTPUT);
   }
 
-  /** Take the collections, strip out any empty lines, then compare them. */
+  /**
+   * Take the collections, strip out any empty lines, then compare them.
+   *
+   * <p>Note that this doesn't deal well with extra spaces in the middle of lines if they differ...</p>
+   */
   private static void validateExpectedOutput(List<String> actualOutput, String... expectedOutput)
   {
     List<String> cleanActual   = getCleanList(actualOutput);
@@ -155,6 +159,34 @@ public class WhenceJavaTest
                                 "Searching " + emptyDir,     //
                                 "No jar or zip files found in search path " + emptyDir
                               };
+
+    validateExpectedOutput(wj.getOutputLines(), expectedOutput);
+  }
+
+  @Test
+  public void testMultipleLibPaths()
+  {
+    WhenceJava wj = new WhenceJava();
+
+    wj.setClassToFind("*BeanUtils");
+
+    String filePath1 = getTestFilePath("whencejava_libs");
+    String filePath2 = getTestFilePath("mixedJarsZipsText");
+    String filePath  = filePath1 + ',' + filePath2;
+
+    wj.setLibPath(filePath);
+    wj.run();
+
+    String[] expectedOutput =
+    {
+      "Class to find: BeanUtils",                                                                                       //
+      "Searching " + filePath1,                                                                                         //
+      "Searching " + filePath2,                                                                                         //
+      "\t====>" + filePath1 + "/commons-beanutils.jar      org/apache/commons/beanutils/locale/LocaleBeanUtils.class",  //
+      "\t====>" + filePath1 + "/commons-beanutils.jar      org/apache/commons/beanutils/BeanUtils.class",               //
+      "\t====>" + filePath2 + "/commons-beanutils.jar    org/apache/commons/beanutils/locale/LocaleBeanUtils.class",    //
+      "\t====>" + filePath2 + "/commons-beanutils.jar    org/apache/commons/beanutils/BeanUtils.class"
+    };
 
     validateExpectedOutput(wj.getOutputLines(), expectedOutput);
   }
