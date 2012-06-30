@@ -1,6 +1,5 @@
 package com.nurflugel.buildtasks;
 
-// import org.apache.tools.ant.BuildException;
 import org.apache.commons.lang.StringUtils;
 import java.io.File;
 import java.io.IOException;
@@ -12,42 +11,39 @@ import java.util.zip.ZipFile;
 import static java.lang.Math.max;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.substringAfterLast;
+import static org.apache.commons.lang.StringUtils.substringBefore;
 
 /**
  * Class to find which jars contain the class you're looking for. Run with no args to get usage.
  *
- * @author        Douglas Bullard
- * @noinspection  UseOfSystemOutOrSystemErr, ClassWithoutPackageStatement
+ * @author  Douglas Bullard
  */
 public class WhenceJava
 {
-  public static final String VERSION           = "1.0.0";
-  private boolean            wildcardEnd;
-  private boolean            wildcardFront;
-  private char               fileSep           = File.separatorChar;
-  private String[]           entrySeparator    = { ",", ":" };
-  private String             classToFind;
-  private String             libPath;
-  private int                numberOfJarsFound = 0;
-  private List<String>       outputLines;
+  public static final String  VERSION           = "1.0.0";
+  private static final String EXTENSION_JAR     = ".jar";
+  private static final String EXTENSION_ZIP     = ".zip";
+  private static final String SLASH             = "/";
+  private static final String EXTENSION_SVN     = ".svn";
+  private static final String EXTENSION_CLASS   = ".class";
+  private static final String WILDCARD_CHAR     = "*";
+  private boolean             wildcardEnd;
+  private boolean             wildcardFront;
+  private char                fileSep           = File.separatorChar;
+  private String[]            entrySeparator    = { ",", ":" };
+  private String              classToFind;
+  private String              libPath;
+  private int                 numberOfJarsFound = 0;
+  private List<String>        outputLines;
 
   public WhenceJava()
   {
     wildcardEnd = false;
   }
 
-  public void setClassToFind(String classToFind)
-  {
-    this.classToFind = classToFind;
-  }
-
-  public void setLibPath(String libPath)
-  {
-    this.libPath = libPath;
-  }
-
+  // -------------------------- OTHER METHODS --------------------------
   // todo this is too long - break up!!
-  public void run()  // throws BuildException
+  public void run()
   {
     outputLines = new ArrayList<String>();
 
@@ -84,16 +80,16 @@ public class WhenceJava
 
       String[] allPaths = allList.toArray(new String[allList.size()]);
 
-      if (classToFind.startsWith("*"))
+      if (classToFind.startsWith(WILDCARD_CHAR))
       {
         wildcardFront = true;
-        classToFind   = classToFind.substring(1);
+        classToFind   = StringUtils.substringAfter(classToFind, WILDCARD_CHAR);
       }
 
-      if (classToFind.endsWith("*"))
+      if (classToFind.endsWith(WILDCARD_CHAR))
       {
         wildcardEnd = true;
-        classToFind = classToFind.substring(0, classToFind.length() - 1);
+        classToFind = substringBefore(classToFind, WILDCARD_CHAR);
       }
 
       String text = "Class to find: " + classToFind;
@@ -131,7 +127,6 @@ public class WhenceJava
     outputLines.add(text);
   }
 
-  // todo break up!
   /** Find all of matching classes in the class path elements. */
   private List<SearchResult> findClasses(String[] classPathElements, String classToFind)
   {
@@ -147,81 +142,62 @@ public class WhenceJava
       }
       else if (classpathFile.isDirectory())
       {
-        String[] filesInDir = classpathFile.list();
-
-        findClassInDirectory(results, classToFind, classpathElement, filesInDir);
+        parseDirectoryClasspath(classToFind, results, classpathElement, classpathFile);
       }
       else if (classpathFile.isFile())  // is is is a zip or a .jar?
       {
-        if (isArchiveFile(classpathElement))
-        {
-          try
-          {
-            numberOfJarsFound++;
-            findClassInZipEntries(results, classToFind, classpathFile);
-          }
-          catch (ZipException zipex)
-          {
-            addToOutput("      *** file not a zip file: " + classpathElement);
-          }
-          catch (IOException ioex)
-          {
-            addToOutput("      *** io error opening file: " + classpathElement);
-          }
-        }
-        else
-        {
-          addToOutput("File " + classpathElement + " isn't a .jar or .zip file, can't read classes from it.");
-        }
+        parseFileClasspath(classToFind, results, classpathElement, classpathFile);
       }
     }
 
     return results;
   }
-  // todo break up!
 
-  /** if the class path element is a directory, see if there are any matches here. */
-  private void findClassInDirectory(List<SearchResult> results, String className, String currentDir, String[] filesInDir)
+  private void parseDirectoryClasspath(String classToFind, List<SearchResult> results, String classpathElement, File classpathFile)
   {
-    if (!currentDir.endsWith(".svn"))
+    String[] filesInDir = classpathFile.list();
+
+    if (!classpathElement.endsWith(EXTENSION_SVN))
     {
-      addToOutput("Searching " + currentDir);
+      addToOutput("Searching " + classpathElement);
 
       for (String fileName : filesInDir)
       {
-        try
+        findClassInFile(results, classToFind, classpathElement, fileName);
+      }
+    }
+  }
+
+  private void findClassInFile(List<SearchResult> results, String className, String currentDir, String fileName)
+  {
+    try
+    {
+      File fileNameWithDir = new File(currentDir + fileSep + fileName);
+
+      if (fileName.endsWith(".class"))
+      {
+        boolean doDisplay = shouldDisplay(fileName, className, true);
+
+        if (doDisplay)
         {
-          File fileNameWithDir = new File(currentDir + fileSep + fileName);
-
-          if (fileName.endsWith(".class"))
-          {
-            boolean doDisplay = shouldDisplay(fileName, className, true);
-
-            if (doDisplay)
-            {
-              results.add(new SearchResult(currentDir, trimClassExtension(fileName)));
-            }
-          }
-          else if (isArchiveFile(fileName))
-          {
-            numberOfJarsFound++;
-            findClassInZipEntries(results, className, fileNameWithDir);
-          }
-          else if (fileNameWithDir.isDirectory())
-          {
-            String[] dirList = fileNameWithDir.list();
-
-            findClassInDirectory(results, className, currentDir + fileSep + fileName, dirList);
-          }
-        }
-        catch (IOException e)
-        {
-          addToOutput("Encountered an error, skipping file " + fileName + ": " + e.getMessage());
+          results.add(new SearchResult(currentDir, trimClassExtension(fileName)));
         }
       }
-    }  // end if
+      else if (isArchiveFile(fileName))
+      {
+        numberOfJarsFound++;
+        findClassInZipEntries(results, className, fileNameWithDir);
+      }
+      else if (fileNameWithDir.isDirectory())
+      {
+        parseDirectoryClasspath(className, results, currentDir + fileSep + fileName, fileNameWithDir);
+      }
+    }
+    catch (IOException e)
+    {
+      addToOutput("Encountered an error, skipping file " + fileName + ": " + e.getMessage());
+    }
   }
-  // todo break up!
 
   /** Tests the prospective class name the the desired matching name - if it matches, display it. */
   private boolean shouldDisplay(String nameToTest, String rawClassName, boolean isDir)
@@ -230,9 +206,9 @@ public class WhenceJava
 
     if (!isDir)
     {
-      if (nextTrimmedClassName.contains("/"))
+      if (nextTrimmedClassName.contains(SLASH))
       {
-        nextTrimmedClassName = substringAfterLast(nextTrimmedClassName, "/");
+        nextTrimmedClassName = substringAfterLast(nextTrimmedClassName, SLASH);
       }
     }
 
@@ -271,17 +247,40 @@ public class WhenceJava
     return shouldDisplay;
   }
 
-  private String trimClassExtension(String className)
+  private static String trimClassExtension(String className)
   {
     String trimmedClassName = className;
-    int    dotStart         = trimmedClassName.indexOf(".class");
 
-    if (dotStart >= 0)
+    if (trimmedClassName.contains(EXTENSION_CLASS))
     {
-      trimmedClassName = trimmedClassName.substring(0, dotStart);
+      trimmedClassName = substringBefore(trimmedClassName, EXTENSION_CLASS);
     }
 
     return trimmedClassName;
+  }
+
+  private void parseFileClasspath(String classToFind, List<SearchResult> results, String classpathElement, File classpathFile)
+  {
+    if (isArchiveFile(classpathElement))
+    {
+      try
+      {
+        numberOfJarsFound++;
+        findClassInZipEntries(results, classToFind, classpathFile);
+      }
+      catch (ZipException zipex)
+      {
+        addToOutput("      *** file not a zip file: " + classpathElement);
+      }
+      catch (IOException ioex)
+      {
+        addToOutput("      *** io error opening file: " + classpathElement);
+      }
+    }
+    else
+    {
+      addToOutput("File " + classpathElement + " isn't a .jar or .zip file, can't read classes from it.");
+    }
   }
 
   /**
@@ -291,7 +290,7 @@ public class WhenceJava
    */
   private boolean isArchiveFile(String classpathElement)
   {
-    return classpathElement.endsWith(".jar") || classpathElement.endsWith(".zip");
+    return classpathElement.endsWith(EXTENSION_JAR) || classpathElement.endsWith(EXTENSION_ZIP);
   }
 
   /** If the class path element is a .zip or .jar, look in there. */
@@ -357,6 +356,16 @@ public class WhenceJava
   public List<String> getOutputLines()
   {
     return outputLines;
+  }
+
+  public void setClassToFind(String classToFind)
+  {
+    this.classToFind = classToFind;
+  }
+
+  public void setLibPath(String libPath)
+  {
+    this.libPath = libPath;
   }
 
   // -------------------------- INNER CLASSES --------------------------
