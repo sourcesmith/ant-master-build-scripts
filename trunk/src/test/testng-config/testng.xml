@@ -4,7 +4,6 @@
   <test verbose="1" name="Whence Java tests" annotations="JDK">
     <groups>
       <run>
-        <!--<include name="todos"/>-->
         <include name="whencejava"/>
         <exclude name="failed"  />
       </run>
@@ -12,15 +11,24 @@
       <packages>
             <package name="com.nurflugel.*" />
       </packages>
-
-
   </test>
 
   <test verbose="1" name="Todos tests" annotations="JDK">
     <groups>
       <run>
         <include name="todos"/>
-        <!--<include name="whencejava"/>-->
+        <exclude name="failed"  />
+      </run>
+    </groups>
+      <packages>
+            <package name="com.nurflugel.*" />
+      </packages>
+  </test>
+
+  <test verbose="1" name="ValidateProperties tests" annotations="JDK">
+    <groups>
+      <run>
+        <include name="validateProperties"/>
         <exclude name="failed"  />
       </run>
     </groups>

@@ -21,8 +21,6 @@ public class ValidatePropertiesTask extends Task
   @Override
   public void execute() throws BuildException
   {
-    Project theProject = getProject();
-
     buildFiles = getBuildFiles();
     doWork();
   }
