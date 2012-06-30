@@ -1,6 +1,5 @@
-package com.nurflugel.buildtasks;
+package com.nurflugel.buildtasks.whencejava;
 
-import org.apache.commons.lang.StringUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -123,7 +122,7 @@ public class WhenceJava
     return false;
   }
 
-  private void addToOutput(String text)
+  public void addToOutput(String text)
   {
     System.out.println(text);
     outputLines.add(text);
@@ -261,10 +260,40 @@ public class WhenceJava
     return trimmedClassName;
   }
 
+  /**
+   * @param   classpathElement  the file name to examine
+   *
+   * @return  returns true if this is a java archive (zip or jar), false if otherwise.
+   */
+  private boolean isArchiveFile(String classpathElement)
+  {
+    return classpathElement.endsWith(EXTENSION_JAR) || classpathElement.endsWith(EXTENSION_ZIP);
+  }
+
+  /** If the class path element is a .zip or .jar, look in there. */
+  private void findClassInZipEntries(List<SearchResult> results, String className, File classpathElement) throws IOException
+  {
+    ZipFile     zipFile    = new ZipFile(classpathElement);
+    Enumeration zipEntries = zipFile.entries();
+
+    while (zipEntries.hasMoreElements())
+    {
+      String  nextFullClassName = zipEntries.nextElement().toString();
+      boolean doDisplay         = shouldDisplay(nextFullClassName, className, false);
+
+      if (doDisplay)  // todo - here is the problem - this only allows one instance of the class per file...
+      {
+        results.add(new SearchResult(classpathElement.getAbsolutePath(), nextFullClassName));
+      }
+    }
+  }
+
   private void parseFileClasspath(String classToFind, List<SearchResult> results, String classpathElement, File classpathFile)
   {
     if (isArchiveFile(classpathElement))
     {
+      addToOutput("Searching " + classpathElement);
+
       try
       {
         numberOfJarsFound++;
@@ -282,36 +311,6 @@ public class WhenceJava
     else
     {
       addToOutput("File " + classpathElement + " isn't a .jar or .zip file, can't read classes from it.");
-    }
-  }
-
-  /**
-   * @param   classpathElement  the file name to examine
-   *
-   * @return  returns true if this is a java archive (zip or jar), false if otherwise.
-   */
-  private boolean isArchiveFile(String classpathElement)
-  {
-    return classpathElement.endsWith(EXTENSION_JAR) || classpathElement.endsWith(EXTENSION_ZIP);
-  }
-
-  /** If the class path element is a .zip or .jar, look in there. */
-  private void findClassInZipEntries(List<SearchResult> results, String className, File classpathElement) throws IOException
-  {
-    // if(classpathElement.getPath().equals("lib/oracle/classes12.zip")){
-    ZipFile     zipFile    = new ZipFile(classpathElement);
-    Enumeration zipEntries = zipFile.entries();
-
-    while (zipEntries.hasMoreElements())
-    {
-      String  nextFullClassName = zipEntries.nextElement().toString();
-      boolean doDisplay         = shouldDisplay(nextFullClassName, className, false);
-
-      if (doDisplay)  // todo - here is the problem - this only allows one instance of the class per file...
-      {
-        results.add(new SearchResult(classpathElement.getAbsolutePath(), nextFullClassName));
-      }
-      // }
     }
   }
 
@@ -336,15 +335,7 @@ public class WhenceJava
 
       for (SearchResult result : results)
       {
-        int           numberOfNeededSpaces = maxLength + 4 - result.getFilePath().length();
-        StringBuilder buffer               = new StringBuilder();
-
-        for (int j = 0; j < numberOfNeededSpaces; j++)
-        {
-          buffer.append(' ');
-        }
-
-        addToOutput("\t====>" + result.getFilePath() + buffer + result.getFullClassPathName());
+        result.addToOutput(maxLength, this);
       }
     }
   }
@@ -368,28 +359,5 @@ public class WhenceJava
   public void setLibPath(String libPath)
   {
     this.libPath = libPath;
-  }
-
-  // -------------------------- INNER CLASSES --------------------------
-  private class SearchResult
-  {
-    private String filePath;
-    private String fullClassPathName;
-
-    SearchResult(String filePath, String fullClassPathName)
-    {
-      this.filePath          = filePath;
-      this.fullClassPathName = fullClassPathName;
-    }
-
-    public String getFilePath()
-    {
-      return filePath;
-    }
-
-    public String getFullClassPathName()
-    {
-      return fullClassPathName;
-    }
   }
 }

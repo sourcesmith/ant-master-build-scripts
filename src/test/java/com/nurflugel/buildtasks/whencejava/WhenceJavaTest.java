@@ -1,4 +1,4 @@
-package com.nurflugel.buildtasks;
+package com.nurflugel.buildtasks.whencejava;
 
 import org.testng.annotations.Test;
 import java.util.ArrayList;
@@ -237,11 +237,34 @@ public class WhenceJavaTest
         "Searching " + filePath2,                                                                                         //
         "\t====>" + filePath1 + "/commons-beanutils.jar      org/apache/commons/beanutils/locale/LocaleBeanUtils.class",  //
         "\t====>" + filePath1 + "/commons-beanutils.jar      org/apache/commons/beanutils/BeanUtils.class",               //
-        "\t====>" + filePath2 + "/commons-beanutils.jar    org/apache/commons/beanutils/locale/LocaleBeanUtils.class",    //
-        "\t====>" + filePath2 + "/commons-beanutils.jar    org/apache/commons/beanutils/BeanUtils.class"
+        "\t====>" + filePath2 + "/commons-beanutils.zip    org/apache/commons/beanutils/locale/LocaleBeanUtils.class",    //
+        "\t====>" + filePath2 + "/commons-beanutils.zip    org/apache/commons/beanutils/BeanUtils.class"
       };
 
       validateExpectedOutput(wj.getOutputLines(), expectedOutput);
     }
+  }
+
+  @Test
+  public void testJarFilePaths()
+  {
+    WhenceJava wj = new WhenceJava();
+
+    wj.setClassToFind("*BeanUtils");
+
+    String filePath = getTestFilePath("whencejava_libs/commons-beanutils.jar");
+
+    wj.setLibPath(filePath);
+    wj.run();
+
+    String[] expectedOutput =
+    {
+      "Class to find: *BeanUtils",                                                             //
+      "Searching " + filePath,                                                                 //
+      "\t====>" + filePath + "    org/apache/commons/beanutils/locale/LocaleBeanUtils.class",  //
+      "\t====>" + filePath + "    org/apache/commons/beanutils/BeanUtils.class"                //
+    };
+
+    validateExpectedOutput(wj.getOutputLines(), expectedOutput);
   }
 }
