@@ -29,15 +29,18 @@ dependencies {
             'com.ryangrier.ant:version_tool:'+   libraryVersions.version_tool,
             'org.testng:testng:'+                libraryVersions.testng,
             'org.apache:commons-lang:'+          libraryVersions.commons_lang,
+            'org.apache:commons-collections:'+          libraryVersions.commons_collections,
             'org.apache:commons-io:'+            libraryVersions.commons_io
 
 
     runtime 'org.apache.ant:ant:'+               libraryVersions.ant,
             'com.nurflugel:buildtasks:'+         libraryVersions.buildtasks,
             'org.apache:commons-lang:'+          libraryVersions.commons_lang,
+            'org.apache:commons-collections:'+          libraryVersions.commons_collections,
             'org.apache:commons-io:'+          libraryVersions.commons_io
 
 
     source 'org.apache.ant:ant:'+                libraryVersions.ant,
+            'org.apache:commons-collections:'+          libraryVersions.commons_collections,
            'com.ryangrier.ant:version_tool:'+    libraryVersions.version_tool
 }

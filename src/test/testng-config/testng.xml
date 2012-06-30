@@ -12,6 +12,8 @@
       <packages>
             <package name="com.nurflugel.*" />
       </packages>
+
+
   </test>
 
   <test verbose="1" name="Todos tests" annotations="JDK">

@@ -5,17 +5,14 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
-import static com.nurflugel.buildtasks.todo.TestResources.getFilePath;
-import static com.nurflugel.buildtasks.todo.User.ALL;
-import static com.nurflugel.buildtasks.todo.User.UNKNOWN;
+import static com.nurflugel.buildtasks.todo.TestResources.getTestFilePath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 /** Tests for the FindTodosTask task. */
-@Test(groups = {"todos","failed"})
-//@Test(groups = {"todos"})
+@Test(groups = { "todos", "failed" })
+// @Test(groups = {"todos"})
 public class TodosTest
 {
   // -------------------------- OTHER METHODS --------------------------
@@ -23,7 +20,7 @@ public class TodosTest
   public void testFiles() throws IOException
   {
     FindTodosTask task = new FindTodosTask();
-    File          dir  = new File(getFilePath("dir"));
+    File          dir  = new File(getTestFilePath("dir"));
 
     task.setBaseDir(dir);
     task.setReportDir(new File("build/reports"));
@@ -143,7 +140,7 @@ public class TodosTest
 
     task.setSearchPhrase("codereview(Code Review;code_review)");
 
-    File dir = new File(getFilePath("dir"));
+    File dir = new File(getTestFilePath("dir"));
 
     task.setBaseDir(dir);
     task.setReportDir(new File("build/reports"));
