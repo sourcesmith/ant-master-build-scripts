@@ -30,9 +30,4 @@ public class SearchResult
   {
     return filePath;
   }
-
-  public String getFullClassPathName()
-  {
-    return fullClassPathName;
-  }
 }
