@@ -78,6 +78,29 @@ public class WhenceJavaTest
   {
     WhenceJava wj = new WhenceJava();
 
+    wj.setClassToFind("BeanUtils");
+
+    String filePath = getTestFilePath("whencejava_libs");
+
+    wj.setLibPath(filePath);
+    wj.run();
+
+    String[] expectedOutput =
+    {
+      "Class to find: BeanUtils",  //
+      "Searching " + filePath,     //
+      "\t====>" + filePath + "/commons-beanutils.jar    org/apache/commons/beanutils/BeanUtils.class"
+    };
+
+    validateExpectedOutput(wj.getOutputLines(), expectedOutput);
+  }
+
+  /** test find a known class(es) in test dir with known jars. */
+  @Test
+  public void testFindWithLeadingWildCard()
+  {
+    WhenceJava wj = new WhenceJava();
+
     wj.setClassToFind("*BeanUtils");
 
     String filePath = getTestFilePath("whencejava_libs");
@@ -87,10 +110,35 @@ public class WhenceJavaTest
 
     String[] expectedOutput =
     {
-      "Class to find: BeanUtils",                                                                                    //
+      "Class to find: *BeanUtils",                                                                                   //
       "Searching " + filePath,                                                                                       //
       "\t====>" + filePath + "/commons-beanutils.jar    org/apache/commons/beanutils/locale/LocaleBeanUtils.class",  //
       "\t====>" + filePath + "/commons-beanutils.jar    org/apache/commons/beanutils/BeanUtils.class"
+    };
+
+    validateExpectedOutput(wj.getOutputLines(), expectedOutput);
+  }
+
+  /** test find a known class(es) in test dir with known jars. */
+  @Test
+  public void testFindWithTrailingWildCard()
+  {
+    WhenceJava wj = new WhenceJava();
+
+    wj.setClassToFind("BeanU*");
+
+    String filePath = getTestFilePath("whencejava_libs");
+
+    wj.setLibPath(filePath);
+    wj.run();
+
+    String[] expectedOutput =
+    {
+      "Class to find: BeanU*",                                                                               //
+      "Searching " + filePath,                                                                               //
+      "\t====>" + filePath + "/commons-beanutils.jar    org/apache/commons/beanutils/BeanUtilsBean.class",   //
+      "\t====>" + filePath + "/commons-beanutils.jar    org/apache/commons/beanutils/BeanUtils.class",       //
+      "\t====>" + filePath + "/commons-beanutils.jar    org/apache/commons/beanutils/BeanUtilsBean$1.class"  //
     };
 
     validateExpectedOutput(wj.getOutputLines(), expectedOutput);
@@ -154,11 +202,12 @@ public class WhenceJavaTest
     wj.setLibPath(emptyDir);
     wj.run();
 
-    String[] expectedOutput = {
-                                "Class to find: BeanUtils",  //
-                                "Searching " + emptyDir,     //
-                                "No jar or zip files found in search path " + emptyDir
-                              };
+    String[] expectedOutput =
+    {
+      "Class to find: *BeanUtils",                            //
+      "Searching " + emptyDir,                                //
+      "No jar or zip files found in search path " + emptyDir
+    };
 
     validateExpectedOutput(wj.getOutputLines(), expectedOutput);
   }
@@ -183,7 +232,7 @@ public class WhenceJavaTest
 
       String[] expectedOutput =
       {
-        "Class to find: BeanUtils",                                                                                       //
+        "Class to find: *BeanUtils",                                                                                      //
         "Searching " + filePath1,                                                                                         //
         "Searching " + filePath2,                                                                                         //
         "\t====>" + filePath1 + "/commons-beanutils.jar      org/apache/commons/beanutils/locale/LocaleBeanUtils.class",  //
