@@ -166,28 +166,33 @@ public class WhenceJavaTest
   @Test
   public void testMultipleLibPaths()
   {
-    WhenceJava wj = new WhenceJava();
+    String[] separatorChars = { ",", ":", ";" };
 
-    wj.setClassToFind("*BeanUtils");
-
-    String filePath1 = getTestFilePath("whencejava_libs");
-    String filePath2 = getTestFilePath("mixedJarsZipsText");
-    String filePath  = filePath1 + ',' + filePath2;
-
-    wj.setLibPath(filePath);
-    wj.run();
-
-    String[] expectedOutput =
+    for (String separatorChar : separatorChars)
     {
-      "Class to find: BeanUtils",                                                                                       //
-      "Searching " + filePath1,                                                                                         //
-      "Searching " + filePath2,                                                                                         //
-      "\t====>" + filePath1 + "/commons-beanutils.jar      org/apache/commons/beanutils/locale/LocaleBeanUtils.class",  //
-      "\t====>" + filePath1 + "/commons-beanutils.jar      org/apache/commons/beanutils/BeanUtils.class",               //
-      "\t====>" + filePath2 + "/commons-beanutils.jar    org/apache/commons/beanutils/locale/LocaleBeanUtils.class",    //
-      "\t====>" + filePath2 + "/commons-beanutils.jar    org/apache/commons/beanutils/BeanUtils.class"
-    };
+      WhenceJava wj = new WhenceJava();
 
-    validateExpectedOutput(wj.getOutputLines(), expectedOutput);
+      wj.setClassToFind("*BeanUtils");
+
+      String filePath1 = getTestFilePath("whencejava_libs");
+      String filePath2 = getTestFilePath("mixedJarsZipsText");
+      String filePath  = filePath1 + separatorChar + filePath2;
+
+      wj.setLibPath(filePath);
+      wj.run();
+
+      String[] expectedOutput =
+      {
+        "Class to find: BeanUtils",                                                                                       //
+        "Searching " + filePath1,                                                                                         //
+        "Searching " + filePath2,                                                                                         //
+        "\t====>" + filePath1 + "/commons-beanutils.jar      org/apache/commons/beanutils/locale/LocaleBeanUtils.class",  //
+        "\t====>" + filePath1 + "/commons-beanutils.jar      org/apache/commons/beanutils/BeanUtils.class",               //
+        "\t====>" + filePath2 + "/commons-beanutils.jar    org/apache/commons/beanutils/locale/LocaleBeanUtils.class",    //
+        "\t====>" + filePath2 + "/commons-beanutils.jar    org/apache/commons/beanutils/BeanUtils.class"
+      };
+
+      validateExpectedOutput(wj.getOutputLines(), expectedOutput);
+    }
   }
 }
