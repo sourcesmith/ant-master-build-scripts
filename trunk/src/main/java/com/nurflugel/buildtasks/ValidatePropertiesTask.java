@@ -5,20 +5,30 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import java.io.*;
 import java.util.*;
+import static org.apache.commons.io.FileUtils.readLines;
+import static org.apache.commons.lang.StringUtils.substringAfter;
+import static org.apache.commons.lang.StringUtils.substringBefore;
 
 /** Goes through Ant files and looks for missing properties. todo - make it ignore comments */
 public class ValidatePropertiesTask extends Task
 {
-  private String      exceptions = "";
-  private Set<String> buildFiles = new HashSet<String>();
+  private static final String OPEN_PROPERTY  = "${";
+  private static final String CLOSE_PROPERTY = "}";
+  private String              exceptions     = "";
+  private Set<String>         buildFiles     = new HashSet<String>();
+  private String              errorText;
 
   @Override
   public void execute() throws BuildException
   {
     Project theProject = getProject();
 
-    buildFiles = getBuildFiles(theProject);
+    buildFiles = getBuildFiles();
+    doWork();
+  }
 
+  public void doWork()
+  {
     Set<String> properties           = new HashSet<String>();
     Set<String> allDefinedProperties = new HashSet<String>();
     Set<String> notMissingProperties = parseExceptions();
@@ -29,18 +39,9 @@ public class ValidatePropertiesTask extends Task
       {
         System.out.println("buildFile = " + buildFile);
 
-        FileReader     fileReader = new FileReader(buildFile);
-        BufferedReader reader     = new BufferedReader(fileReader);
-        String         line       = reader.readLine();
+        List<String> lines = readLines(new File(buildFile));
 
-        while (line != null)
-        {
-          parseLineForProps(properties, line);
-          parseLineForDefinations(allDefinedProperties, line);
-          line = reader.readLine();
-        }
-
-        reader.close();
+        processBuildFileLines(properties, allDefinedProperties, lines);
       }
     }
     catch (IOException e)
@@ -48,12 +49,21 @@ public class ValidatePropertiesTask extends Task
       throw new BuildException(e);
     }
 
-    validateProject(theProject, properties, allDefinedProperties, notMissingProperties);
+    validateProject(properties, allDefinedProperties, notMissingProperties);
   }
 
-  private Set<String> getBuildFiles(Project project)
+  private void processBuildFileLines(Set<String> properties, Set<String> allDefinedProperties, List<String> lines)
   {
-    Hashtable   projectProperties = getProjectProperties(project);
+    for (String line : lines)
+    {
+      parseLineForProps(properties, line);
+      parseLineForDefinations(allDefinedProperties, line);
+    }
+  }
+
+  private Set<String> getBuildFiles()
+  {
+    Map         projectProperties = getProjectProperties();
     Set         set               = projectProperties.keySet();
     Set<String> buildFileNames    = new HashSet<String>();
 
@@ -70,16 +80,12 @@ public class ValidatePropertiesTask extends Task
     return buildFileNames;
   }
 
-  private Hashtable getProjectProperties(Project project)
+  private Map getProjectProperties()
   {
-    if (project != null)
-    {
-      return project.getProperties();
-    }
-    else
-    {
-      return new Hashtable();
-    }
+    Project project = getProject();
+
+    return (project != null) ? project.getProperties()
+                             : new Hashtable();
   }
 
   private Set<String> parseExceptions()
@@ -97,18 +103,20 @@ public class ValidatePropertiesTask extends Task
 
   private void parseLineForProps(Set<String> properties, String line)
   {
-    while (line.contains("${") && !line.trim().startsWith("<!"))
-    {
-      int    firstIndex  = line.indexOf("${");
-      int    secondIndex = line.indexOf("}", firstIndex);
-      String property    = line.substring(firstIndex + 2, secondIndex);
+    String line1 = line.trim();
 
-      if (!property.contains("@{"))
+    while (line1.contains(OPEN_PROPERTY) && !line1.startsWith("<!"))  // there's at least one property in here...
+    {
+      String property = substringAfter(line1, OPEN_PROPERTY);
+
+      property = substringBefore(property, CLOSE_PROPERTY);
+
+      if (!property.contains("@{"))                                   // don't do property names with attributes (yet)
       {
         properties.add(property);
       }
 
-      line = line.substring(secondIndex + 1);
+      line1 = substringAfter(line1, CLOSE_PROPERTY);
     }
   }
 
@@ -119,51 +127,52 @@ public class ValidatePropertiesTask extends Task
 
     for (String def : defs)
     {
-      parseLineForDefinations(definedproperties, line, def);
+      parseLineForDefinitions(definedproperties, line, def);
     }
   }
 
-  private void parseLineForDefinations(Set<String> definedproperties, String line, String def)
+  private void parseLineForDefinitions(Set<String> definedProperties, String line, String def)
   {
-    while (line.contains(def))
+    String line1 = line;
+
+    while (line1.contains(def))
     {
-      int firstIndex = line.indexOf(def);
+      int firstIndex = line1.indexOf(def);
 
-      line = line.substring(firstIndex + def.length());
+      line1 = line1.substring(firstIndex + def.length());
 
-      int    secondIndex = line.indexOf("\"");
-      String property    = line.substring(0, secondIndex);
+      int    secondIndex = line1.indexOf('\"');
+      String property    = line1.substring(0, secondIndex);
 
-      definedproperties.add(property);
-      line = line.substring(secondIndex + 1);
+      definedProperties.add(property);
+      line1 = line1.substring(secondIndex + 1);
     }
   }
 
-  private void validateProject(Project project, Set<String> properties, Set<String> allDefinedProperties, Set<String> notMissingProperties)
+  void validateProject(Set<String> properties, Set<String> allDefinedProperties, Set<String> notMissingProperties)
   {
-    if (project != null)
+    Map projectProperties = getProjectProperties();
+    Set keys              = projectProperties.keySet();
+
+    allDefinedProperties.addAll(keys);
+
+    boolean       isFailed = false;
+    StringBuilder buffer   = new StringBuilder();
+
+    for (String property : properties)
     {
-      Map projectProperties = getProjectProperties(project);
-      Set keys              = projectProperties.keySet();
-
-      allDefinedProperties.addAll(keys);
-
-      boolean      isFailed = false;
-      StringBuffer buffer   = new StringBuffer();
-
-      for (String property : properties)
+      if (!allDefinedProperties.contains(property) && !notMissingProperties.contains(property))
       {
-        if (!allDefinedProperties.contains(property) && !notMissingProperties.contains(property))
-        {
-          isFailed = true;
-          buffer.append("\n").append(property);
-        }
+        isFailed = true;
+        buffer.append("\n\t").append(property);
       }
+    }
 
-      if (isFailed)
-      {
-        throw new BuildException("Missing required properties in build file "  /*+ buildFileName*/ + ":" + buffer.toString());
-      }
+    errorText = buffer.toString();
+
+    if (isFailed)
+    {
+      throw new BuildException("Missing required properties in build file "  /*+ buildFileName*/ + ':' + errorText);
     }
   }
 
@@ -172,16 +181,13 @@ public class ValidatePropertiesTask extends Task
     buildFiles.add(buildFileName);
   }
 
-  public static void main(String[] args)
-  {
-    ValidatePropertiesTask task = new ValidatePropertiesTask();
-
-    task.setBuildFile("build/master-build/master-build.xml");
-    task.execute();
-  }
-
   public void setExceptions(String exceptions)
   {
     this.exceptions = exceptions;
+  }
+
+  public String getErrorText()
+  {
+    return errorText;
   }
 }
