@@ -11,6 +11,7 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import static java.lang.Math.max;
 import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.substringAfterLast;
 
 /**
  * Class to find which jars contain the class you're looking for. Run with no args to get usage.
@@ -20,41 +21,36 @@ import static java.util.Arrays.asList;
  */
 public class WhenceJava
 {
+  public static final String VERSION           = "1.0.0";
   private boolean            wildcardEnd;
   private boolean            wildcardFront;
-  private char               fileSep        = File.separatorChar;
-  private String[]           entrySeparator = { ",", ":" };
+  private char               fileSep           = File.separatorChar;
+  private String[]           entrySeparator    = { ",", ":" };
   private String             classToFind;
   private String             libPath;
-  public static final String VERSION        = "1.0.0";
+  private int                numberOfJarsFound = 0;
+  private List<String>       outputLines;
 
   public WhenceJava()
   {
     wildcardEnd = false;
   }
 
-  // --------------------------- main() method - remove and replace with tests ---------------------------
-  public static void main(String[] args)
+  public void setClassToFind(String classToFind)
   {
-    WhenceJava wj = new WhenceJava();
-
-    if (args.length == 0)
-    {
-      wj.setClassToFind("*BeanUtils");
-      wj.setLibPath("build/resources/test/whencejava_libs");
-    }
-    else if (args.length == 2)
-    {
-      wj.setClassToFind(args[0]);
-      wj.setLibPath(args[1]);
-    }
-
-    wj.run();
+    this.classToFind = classToFind;
   }
 
-  //todo this is too long - break up!!
+  public void setLibPath(String libPath)
+  {
+    this.libPath = libPath;
+  }
+
+  // todo this is too long - break up!!
   public void run()  // throws BuildException
   {
+    outputLines = new ArrayList<String>();
+
     boolean shouldExit = usage();
 
     if (!shouldExit)
@@ -100,7 +96,9 @@ public class WhenceJava
         classToFind = classToFind.substring(0, classToFind.length() - 1);
       }
 
-      System.out.println("Class to find: " + classToFind);
+      String text = "Class to find: " + classToFind;
+
+      addToOutput(text);
 
       List<SearchResult> results = findClasses(allPaths, classToFind);
 
@@ -113,13 +111,13 @@ public class WhenceJava
   {
     if ((classToFind == null) || (libPath == null))
     {
-      System.out.println("usage: build whenceJava -Dpath=xxxx -Dclass=SomeClass");
-      System.out.println("       path = comma delimited list of dirs or archives to search.");
-      System.out.println("       class = name of class to search for.");
-      System.out.println("Example: whencejava -Dclass=Vector -Dpath=lib,loaderLib/struts  - finds the jar and packages structure for the Vector class");
-      System.out.println("Example: whencejava -Dclass=*Vector -Dpath=lib  - finds the jar and packages structure for any class ending with Vector");
-      System.out.println("Example: whencejava -Dclass=Vector* -Dpath=lib  - finds the jar and packages structure for any class beginning with Vector");
-      System.out.println("Example: whencejava -Dclass=*Vector* -Dpath=lib - finds the jar and packages structure for any class with Vector as part of it's name");
+      addToOutput("usage: build whenceJava -Dpath=xxxx -Dclass=SomeClass");
+      addToOutput("       path = comma delimited list of dirs or archives to search.");
+      addToOutput("       class = name of class to search for.");
+      addToOutput("Example: whencejava -Dclass=Vector -Dpath=lib,loaderLib/struts  - finds the jar and packages structure for the Vector class");
+      addToOutput("Example: whencejava -Dclass=*Vector -Dpath=lib  - finds the jar and packages structure for any class ending with Vector");
+      addToOutput("Example: whencejava -Dclass=Vector* -Dpath=lib  - finds the jar and packages structure for any class beginning with Vector");
+      addToOutput("Example: whencejava -Dclass=*Vector* -Dpath=lib - finds the jar and packages structure for any class with Vector as part of it's name");
 
       return true;
     }
@@ -127,7 +125,13 @@ public class WhenceJava
     return false;
   }
 
-  //todo break up!
+  private void addToOutput(String text)
+  {
+    System.out.println(text);
+    outputLines.add(text);
+  }
+
+  // todo break up!
   /** Find all of matching classes in the class path elements. */
   private List<SearchResult> findClasses(String[] classPathElements, String classToFind)
   {
@@ -139,7 +143,7 @@ public class WhenceJava
 
       if (!classpathFile.exists())
       {
-        System.out.println("       *** file or directory does not exist: " + classpathFile.getAbsolutePath());
+        addToOutput("       *** file or directory does not exist: " + classpathFile.getAbsolutePath());
       }
       else if (classpathFile.isDirectory())
       {
@@ -153,33 +157,35 @@ public class WhenceJava
         {
           try
           {
+            numberOfJarsFound++;
             findClassInZipEntries(results, classToFind, classpathFile);
           }
           catch (ZipException zipex)
           {
-            System.out.println("      *** file not a zip file: " + classpathElement);
+            addToOutput("      *** file not a zip file: " + classpathElement);
           }
           catch (IOException ioex)
           {
-            System.out.println("      *** io error opening file: " + classpathElement);
+            addToOutput("      *** io error opening file: " + classpathElement);
           }
         }
         else
         {
-          System.out.println("File " + classpathElement + " isn't a .jar or .zip file, can't read classes from it.");
+          addToOutput("File " + classpathElement + " isn't a .jar or .zip file, can't read classes from it.");
         }
       }
-    }                                   // end for
+    }
 
     return results;
   }
-//todo break up!
+  // todo break up!
+
   /** if the class path element is a directory, see if there are any matches here. */
   private void findClassInDirectory(List<SearchResult> results, String className, String currentDir, String[] filesInDir)
   {
     if (!currentDir.endsWith(".svn"))
     {
-      System.out.println("Searching " + currentDir);
+      addToOutput("Searching " + currentDir);
 
       for (String fileName : filesInDir)
       {
@@ -198,6 +204,7 @@ public class WhenceJava
           }
           else if (isArchiveFile(fileName))
           {
+            numberOfJarsFound++;
             findClassInZipEntries(results, className, fileNameWithDir);
           }
           else if (fileNameWithDir.isDirectory())
@@ -209,12 +216,13 @@ public class WhenceJava
         }
         catch (IOException e)
         {
-          System.out.println("Encountered an error, skipping file " + fileName + ": " + e.getMessage());
+          addToOutput("Encountered an error, skipping file " + fileName + ": " + e.getMessage());
         }
       }
     }  // end if
   }
-//todo break up!
+  // todo break up!
+
   /** Tests the prospective class name the the desired matching name - if it matches, display it. */
   private boolean shouldDisplay(String nameToTest, String rawClassName, boolean isDir)
   {
@@ -224,7 +232,7 @@ public class WhenceJava
     {
       if (nextTrimmedClassName.contains("/"))
       {
-        nextTrimmedClassName = StringUtils.substringAfterLast(nextTrimmedClassName, "/");
+        nextTrimmedClassName = substringAfterLast(nextTrimmedClassName, "/");
       }
     }
 
@@ -309,38 +317,46 @@ public class WhenceJava
   /** Display any results that were found. */
   private void displayResults(List<SearchResult> results)
   {
-    System.out.println("\n");
+    addToOutput("\n");
 
     // find the longest key, add 4 to that, pad the rest
-    int maxLength = 0;
-
-    for (SearchResult result : results)
+    if (results.isEmpty())
     {
-      maxLength = max(maxLength, result.getFilePath().length());
+      addToOutput("No jar or zip files found in search path " + libPath);
     }
-
-    for (SearchResult result : results)
+    else
     {
-      int           numberOfNeededSpaces = maxLength + 4 - result.getFilePath().length();
-      StringBuilder buffer               = new StringBuilder();
+      int maxLength = 0;
 
-      for (int j = 0; j < numberOfNeededSpaces; j++)
+      for (SearchResult result : results)
       {
-        buffer.append(' ');
+        maxLength = max(maxLength, result.getFilePath().length());
       }
 
-      System.out.println("\t====>" + result.getFilePath() + buffer + result.getFullClassPathName());
+      for (SearchResult result : results)
+      {
+        int           numberOfNeededSpaces = maxLength + 4 - result.getFilePath().length();
+        StringBuilder buffer               = new StringBuilder();
+
+        for (int j = 0; j < numberOfNeededSpaces; j++)
+        {
+          buffer.append(' ');
+        }
+
+        addToOutput("\t====>" + result.getFilePath() + buffer + result.getFullClassPathName());
+      }
     }
   }
 
-  public void setClassToFind(String classToFind)
+  // --------------------- GETTER / SETTER METHODS ---------------------
+  public int getNumberOfJarsFound()
   {
-    this.classToFind = classToFind;
+    return numberOfJarsFound;
   }
 
-  public void setLibPath(String libPath)
+  public List<String> getOutputLines()
   {
-    this.libPath = libPath;
+    return outputLines;
   }
 
   // -------------------------- INNER CLASSES --------------------------
