@@ -10,6 +10,7 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import static java.lang.Math.max;
 import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.substringAfter;
 import static org.apache.commons.lang.StringUtils.substringAfterLast;
 import static org.apache.commons.lang.StringUtils.substringBefore;
 
@@ -78,25 +79,26 @@ public class WhenceJava
         allList.add(libPath);
       }
 
-      String[] allPaths = allList.toArray(new String[allList.size()]);
+      String[] allPaths            = allList.toArray(new String[allList.size()]);
+      String   modifiedClassToFind = classToFind;
 
-      if (classToFind.startsWith(WILDCARD_CHAR))
+      if (modifiedClassToFind.startsWith(WILDCARD_CHAR))
       {
-        wildcardFront = true;
-        classToFind   = StringUtils.substringAfter(classToFind, WILDCARD_CHAR);
+        wildcardFront       = true;
+        modifiedClassToFind = substringAfter(modifiedClassToFind, WILDCARD_CHAR);
       }
 
       if (classToFind.endsWith(WILDCARD_CHAR))
       {
-        wildcardEnd = true;
-        classToFind = substringBefore(classToFind, WILDCARD_CHAR);
+        wildcardEnd         = true;
+        modifiedClassToFind = substringBefore(modifiedClassToFind, WILDCARD_CHAR);
       }
 
       String text = "Class to find: " + classToFind;
 
       addToOutput(text);
 
-      List<SearchResult> results = findClasses(allPaths, classToFind);
+      List<SearchResult> results = findClasses(allPaths, modifiedClassToFind);
 
       displayResults(results);
     }
