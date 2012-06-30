@@ -99,7 +99,7 @@ public class ValidatePropertiesTask extends Task
     return notMissingProperties;
   }
 
-  private void parseLineForProps(Set<String> properties, String line)
+  void parseLineForProps(Set<String> properties, String line)
   {
     String line1 = line.trim();
 
