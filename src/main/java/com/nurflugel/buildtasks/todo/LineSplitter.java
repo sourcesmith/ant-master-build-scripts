@@ -7,6 +7,8 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
 /** Created with IntelliJ IDEA. User: dbulla Date: 6/28/12 Time: 4:17 PM To change this template use File | Settings | File Templates. */
 public class LineSplitter
 {
+  private LineSplitter() {}
+
   /**
    * Take the name pattern and parse it into a list of users. The pattern template looks like this:
    *
@@ -24,18 +26,23 @@ public class LineSplitter
       return new String[0];
     }
 
-    // First, validate that the line starts with the word "users"
-    BuildException buildException = new BuildException("Name pattern " + namePattern
-                                                         + " was not in the expected pattern of 'name1(alias1;alias2...),name2(alias1...),name3...");
-
     // reject wrong parenthesis types
     if (containsAny(namePattern, "{}[]"))
     {
+      // First, validate that the line starts with the word "users"
+      BuildException buildException = new BuildException("Name pattern " + namePattern
+                                                           + " was not in the expected pattern of 'name1(alias1;alias2...),name2(alias1...),name3...");
+
       throw buildException;
     }
 
     // break the line up into users
     String[] tokens = namePattern.split(",");
+
+    if (tokens.length == 0)
+    {
+      throw new BuildException("No names found in the string " + namePattern);
+    }
 
     return tokens;
   }
