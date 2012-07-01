@@ -117,25 +117,43 @@ javadoc {
 //}
 
 
-// we overwrite compileJava because the IDEA javac2 compiler is needed for GUI forms.  TODO - figure out how to do this via a flag or something...
+// we overwrite compileJava because the IDEA javac2 compiler is needed for GUI forms.
 task compileJava (overwrite: true) << {
+
   theDir = file("${project.buildDir.path}/classes/main")
+  //make any source dirs needed for the output
   theDir.mkdirs()
-    final mainSrcDir = "${projectDir}/src/main/java"
+
+  mainSrcDir = "${projectDir}/src/main/java"
+  destDir = "${projectDir}/build/classes/main"
+  javaSoureCompatibility = sourceCompatibility
+  javaTargetCompatibility = targetCompatibility
+  optimize = "off"
+  deprecation = "off"
+  includeAntRuntime = false
+  javaDeprecation = deprecation
+  debugLevel = "lines,vars,source"
+  debug = "on"
+  classpath = configurations.compile.asPath
+
+  compileJavac2(mainSrcDir, classpath, destDir, debug, debugLevel, javaDeprecation, includeAntRuntime, optimize, javaSoureCompatibility, javaTargetCompatibility)
+}
+
+private void compileJavac2(mainSrcDir, classpath, destDir, debug, debugLevel, deprecation, includeAntRuntime, optimize, sourceCompatibility, targetCompatibility)
+{
   ant {
     taskdef(name: 'javac2',
             classname: 'com.intellij.ant.Javac2',
             classpath: configurations.javac2.asPath)
 
-
     javac2(srcdir: mainSrcDir,
-           classpath: configurations.compile.asPath,
-           destdir: "build/classes/main",
-           debug: "on",
-           debugLevel: "lines,vars,source",
-           deprecation: "off",
-           includeAntRuntime: false,
-           optimize: "off",
+           classpath: classpath,
+           destdir: destDir,
+           debug: debug,
+           debugLevel: debugLevel,
+           deprecation: deprecation,
+           includeAntRuntime: includeAntRuntime,
+           optimize: optimize,
            source: sourceCompatibility,
            target: targetCompatibility
     )
