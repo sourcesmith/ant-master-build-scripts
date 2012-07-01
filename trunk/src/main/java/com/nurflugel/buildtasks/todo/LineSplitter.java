@@ -12,11 +12,11 @@ public class LineSplitter
   /**
    * Take the name pattern and parse it into a list of users. The pattern template looks like this:
    *
-   * <p>users[dbulla(dgb;doug;dbulla),snara(snara;sunitha),bren,dlabar,mkshir]</p>
+   * <p>dbulla(dgb;doug;dbulla),snara(snara;sunitha),bren,dlabar,mkshir</p>
    *
    * @return  a list of User. If none are specified, then the list is empty.
    *
-   * @throws  org.apache.tools.ant.BuildException  if the line isn't in the expected format
+   * @throws  BuildException  if the line isn't in the expected format
    */
   public static String[] splitLine(String namePattern)
   {
