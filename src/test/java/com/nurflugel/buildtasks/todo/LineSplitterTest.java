@@ -14,6 +14,22 @@ public class LineSplitterTest
   @Test
   public void testSplitLine() throws Exception
   {
+    String[] strings = splitLine("dbulla,dlabar,dduddl");
+
+    for (String text : strings)
+    {
+      System.out.println("string = " + text);
+    }
+
+    assertEquals(strings.length, 3);  // should have dbulla, dlabar, dduddl
+    assertTrue(strings[0].startsWith("dbulla"));
+    assertTrue(strings[1].startsWith("dlabar"));
+    assertTrue(strings[2].startsWith("dduddl"));
+  }
+
+  @Test
+  public void testSplitLine2() throws Exception
+  {
     String[] strings = splitLine("dbulla(dgb;douglas;doug),dlabar(derek),dduddl(dave;david)");
 
     for (String text : strings)
