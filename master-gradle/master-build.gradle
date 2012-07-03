@@ -50,12 +50,14 @@ repositories {
 
 dependencies {
   ext.libraryVersions += [
-    javac2asm:      '3.3.1',
+    forms_rt:       '11.0.3',
+    guice:          '3.0',
     intellij:       '11.0.3',
     jacoco:         '0.5.7.201204190339',
-    guice:          '3.0',
-    velocity:       '1.4',
+    javac2asm:      '3.3.1',
+    jdom:           '1.0',
     reportng:       '1.1.2',
+    velocity:       '1.4',
     version_tool:   '1.1.4_fixed'
   ]
 
@@ -208,7 +210,7 @@ task generateCoverageReport (dependsOn: [test]) << {
 }
 
 task whencejava(description: "Call this to find a class hiding in jar in a lib.  -className=com.some.class -DlibPath=parentdir/libdir.  If libPath is omitted, the compile classpath is used")<<{
-  logging.captureStandardOutput LogLevel.LIFECYCLE
+//  logging.captureStandardOutput LogLevel.LIFECYCLE
   ant.taskdef(name: 'whenceJava', classname: 'com.nurflugel.buildtasks.WhenceJava', classpath: configurations.compile.asPath)
   libPath = System.getProperty('libPath')
   println "libPath = ${libPath}"
