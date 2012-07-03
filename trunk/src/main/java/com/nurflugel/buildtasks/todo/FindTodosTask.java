@@ -186,7 +186,7 @@ public class FindTodosTask extends Task
 
       all.addTodo(todo);  // add to all t*dos
 
-      boolean foundUser = false;
+      boolean isUnknownUser = true;
 
       for (User user : users)
       {
@@ -197,14 +197,14 @@ public class FindTodosTask extends Task
           if (comment.contains(alias.toUpperCase()))
           {
             user.addTodo(todo);
-            foundUser = true;
+            isUnknownUser = false;
 
             break;
           }
         }
       }
 
-      if (!foundUser)     // didn't find a matching user?  Then add it to the "unknown" user collection
+      if (isUnknownUser)  // didn't find a matching user?  Then add it to the "unknown" user collection
       {
         unknown.addTodo(todo);
       }
