@@ -2,18 +2,27 @@ package com.nurflugel.buildtasks.todo;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.apache.commons.lang.StringUtils.*;
 
 /** dbulla(doug,dgb,douglas). */
 public class AliasParser
 {
-  public static List<String> getAliases(String textToParse)
+  public static List<String> getAliases(String textToParse) throws BadParsingException
   {
     List<String> terms = new ArrayList<String>();
+    if (textToParse.contains("{")||textToParse.contains("[")||textToParse.contains("]")||textToParse.contains("}"))
+          {
+            throw new BadParsingException("Wrong type of parenthesis used!");
+          }
+    
 
     if (textToParse.contains("("))
     {
+      if (!textToParse.contains(")"))
+      {
+        throw new BadParsingException("Opening paren without closing paren");
+      }
+
       String textBeforeParens = substringBefore(textToParse, "(");
 
       terms.add(textBeforeParens);
@@ -32,6 +41,11 @@ public class AliasParser
     }
     else
     {
+      if (textToParse.contains(")"))
+      {
+        throw new BadParsingException("Closing paren without opening paren");
+      }
+
       terms.add(textToParse);
     }
 
