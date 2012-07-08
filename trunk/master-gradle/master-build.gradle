@@ -6,6 +6,7 @@ apply plugin: 'project-report'
 //apply plugin: 'checkstyle'
 apply plugin: 'pmd'
 apply plugin: 'signing'
+//apply plugin: 'groovy'
 
 //apply plugin: 'sonar'
 //apply plugin: 'build-announcements'
@@ -95,13 +96,20 @@ test {
   }
 }
 
-def titleForDocumentation = archivesBaseName + ' ' + version
+//todo get version from specified file
+def titleForDocumentation = archivesBaseName + ' ' + '1.0.6'
+    
 def copyrightString = 'Copyright &#169; 2008&#8211;2012  Douglas Bullard.  All Rights Reserved.'
 def packageTitle = group
 
 // this will fail, but still do what it's supposed to
 javadoc {
-  options.overview('overview.html')
+  final overviewFile = "${projectDir}/src/main/java/overview.html"
+  println "File to look for is "+ overviewFile
+  
+  if(new File(overviewFile).exists()){
+    options.overview(overviewFile)
+  }
   options.showAll()
   options.encoding('UTF-8')
   options.setUse(true)
@@ -238,7 +246,6 @@ private void updateVersion(String versionUpdateType)
                     versionupdatetype: versionUpdateType
   )
 }
-
 
 task wrapper(type: Wrapper) {
   gradleVersion = '1.0'
