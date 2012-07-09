@@ -1,16 +1,11 @@
 package com.nurflugel.buildtasks.todo;
 
-import org.apache.tools.ant.BuildException;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import static org.apache.commons.lang.StringUtils.*;
-import static org.apache.commons.lang.StringUtils.containsAny;
-import static org.apache.commons.lang.StringUtils.substringBefore;
-import static org.apache.tools.ant.Project.MSG_ERR;
 
-/** Created with IntelliJ IDEA. User: dbulla Date: 6/28/12 Time: 2:23 PM To change this template use File | Settings | File Templates. */
+/** Representation of something identified by a name or ID, but has a list of alternate identities. The main name is one of those. */
 public class NameWithAliases
 {
   /** The user id - this should be RACF, as it's always unique. */
@@ -19,27 +14,15 @@ public class NameWithAliases
   /** This can be anything the user is called by - in my case, doug, dbulla, dgb, douglas, etc. */
   protected final Set<String> aliases = new HashSet<String>();
 
-  public NameWithAliases(String name)
+  public NameWithAliases(List<String> names)
   {
-    this.name = name;
+    this(names.toArray(new String[names.size()]));
   }
 
-  public NameWithAliases(String name, String[] aliasList)
+  public NameWithAliases(String... names)
   {
-    this(name);
-
-    for (String alias : aliasList)
-    {
-      if (!isEmpty(alias))
-      {
-        aliases.add(alias);
-      }
-    }
-  }
-
-  static NameWithAliases[] parseNames(String text)
-  {
-    return null;
+    name = names[0];
+    Collections.addAll(aliases, names);
   }
 
   // --------------------- GETTER / SETTER METHODS ---------------------

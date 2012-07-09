@@ -1,9 +1,10 @@
 package com.nurflugel.buildtasks.todo;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 import java.util.List;
 import static com.nurflugel.buildtasks.todo.AliasParser.getAliases;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /** Created with IntelliJ IDEA. User: dbulla Date: 7/5/12 Time: 11:08 AM To change this template use File | Settings | File Templates. */
 public class AliasParserTest
@@ -18,11 +19,11 @@ public class AliasParserTest
 
   private void findAllAliases(List<String> strings, String... text)
   {
-    Assert.assertEquals(strings.size(), text.length);
+    assertEquals(strings.size(), text.length);
 
     for (String item : text)
     {
-      Assert.assertTrue(strings.contains(item));
+      assertTrue(strings.contains(item));
     }
   }
 
@@ -75,16 +76,19 @@ public class AliasParserTest
   {
     getAliases("dbulla{");
   }
+
   @Test(expectedExceptions = BadParsingException.class)
   public void testBadSyntaxWrongParens2() throws Exception
   {
     getAliases("dbulla[");
   }
+
   @Test(expectedExceptions = BadParsingException.class)
   public void testBadSyntaxWrongParens3() throws Exception
   {
     getAliases("dbulla]");
   }
+
   @Test(expectedExceptions = BadParsingException.class)
   public void testBadSyntaxWrongParens4() throws Exception
   {

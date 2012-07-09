@@ -9,9 +9,7 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import static java.lang.Math.max;
 import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.substringAfter;
-import static org.apache.commons.lang.StringUtils.substringAfterLast;
-import static org.apache.commons.lang.StringUtils.substringBefore;
+import static org.apache.commons.lang.StringUtils.*;
 
 /**
  * Class to find which jars contain the class you're looking for. Run with no args to get usage.
