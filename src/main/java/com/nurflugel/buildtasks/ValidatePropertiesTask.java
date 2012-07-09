@@ -1,10 +1,10 @@
 package com.nurflugel.buildtasks;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.tools.ant.Task;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
-import java.io.*;
+import org.apache.tools.ant.Task;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import static org.apache.commons.io.FileUtils.readLines;
 import static org.apache.commons.lang.StringUtils.substringAfter;

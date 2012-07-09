@@ -19,8 +19,8 @@ public class TodosTest
   @Test
   public void testFiles() throws IOException
   {
-    FindTodosTask task = new FindTodosTask();
-    File          dir  = new File(getTestFilePath("dir"));
+    FindTodosAntTask task = new FindTodosAntTask();
+    File             dir  = new File(getTestFilePath("dir"));
 
     task.setBaseDir(dir);
     task.setReportDir(new File("build/reports"));
@@ -47,7 +47,7 @@ public class TodosTest
   @Test(expectedExceptions = BuildException.class)
   public void testParseBadUsers1()
   {
-    FindTodosTask task = new FindTodosTask();
+    FindTodosAntTask task = new FindTodosAntTask();
 
     task.setNamePattern("dbulla{dgb;doug;dbulla),snara(snara;sunitha)");
 
@@ -57,7 +57,7 @@ public class TodosTest
   @Test(expectedExceptions = BuildException.class)
   public void testParseBadUsers2()
   {
-    FindTodosTask task = new FindTodosTask();
+    FindTodosAntTask task = new FindTodosAntTask();
 
     task.setNamePattern("dbulla(dgb;doug;dbulla]:snara(snara;sunitha)");
 
@@ -67,7 +67,7 @@ public class TodosTest
   @Test
   public void testParseEmptyUsers()
   {
-    FindTodosTask task = new FindTodosTask();
+    FindTodosAntTask task = new FindTodosAntTask();
 
     task.setNamePattern("");
     fail();
@@ -85,7 +85,7 @@ public class TodosTest
   @Test
   public void testParseGoodUsers()
   {
-    FindTodosTask task = new FindTodosTask();
+    FindTodosAntTask task = new FindTodosAntTask();
 
     task.setNamePattern("dbulla(dgb;doug),snara(sunitha),bob");
     fail();
@@ -127,7 +127,7 @@ public class TodosTest
   @Test
   public void testDefaultSearchPhrase()
   {
-    FindTodosTask task = new FindTodosTask();
+    FindTodosAntTask task = new FindTodosAntTask();
 
     assertEquals(task.getSearchPhrase(), "todo");
   }
@@ -136,7 +136,7 @@ public class TodosTest
   @Test
   public void testMultipleValueSearchPhrase() throws IOException
   {
-    FindTodosTask task = new FindTodosTask();
+    FindTodosAntTask task = new FindTodosAntTask();
 
     task.setSearchPhrase("codereview(Code Review;code_review)");
 
