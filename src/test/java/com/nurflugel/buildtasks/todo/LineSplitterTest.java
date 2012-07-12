@@ -14,7 +14,7 @@ public class LineSplitterTest
   @Test
   public void testSplitLine() throws Exception
   {
-    String[] strings = splitLine("dbulla,dlabar,dduddl");
+    String[] strings = splitLine("dbulla;dlabar;dduddl");
 
     for (String text : strings)
     {
@@ -30,7 +30,7 @@ public class LineSplitterTest
   @Test
   public void testSplitLine2() throws Exception
   {
-    String[] strings = splitLine("dbulla(dgb;douglas;doug),dlabar(derek),dduddl(dave;david)");
+    String[] strings = splitLine("dbulla(dgb,douglas,doug);dlabar(derek);dduddl(dave,david)");
 
     for (String text : strings)
     {
@@ -46,25 +46,25 @@ public class LineSplitterTest
   @Test(expectedExceptions = BuildException.class)
   public void testBadChars1()
   {
-    splitLine("dbulla(dgb;douglas;doug],dlabar(derek),dduddl(dave;david)");
+    splitLine("dbulla(dgb,douglas,doug];dlabar(derek);dduddl(dave,david)");
   }
 
   @Test(expectedExceptions = BuildException.class)
   public void testBadChars2()
   {
-    splitLine("dbulla(dgb;douglas;doug[,dlabar(derek),dduddl(dave;david)");
+    splitLine("dbulla(dgb,douglas,doug[,dlabar(derek),dduddl(dave,david)");
   }
 
   @Test(expectedExceptions = BuildException.class)
   public void testBadChars3()
   {
-    splitLine("dbulla(dgb;douglas;doug{,dlabar(derek),dduddl(dave;david)");
+    splitLine("dbulla(dgb,douglas,doug{,dlabar(derek),dduddl(dave,david)");
   }
 
   @Test(expectedExceptions = BuildException.class)
   public void testBadChars4()
   {
-    splitLine("dbulla(dgb;douglas;doug},dlabar(derek),dduddl(dave;david)");
+    splitLine("dbulla(dgb,douglas,doug},dlabar(derek),dduddl(dave,david)");
   }
 
   @Test

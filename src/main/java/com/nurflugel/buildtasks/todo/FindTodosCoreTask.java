@@ -2,14 +2,15 @@ package com.nurflugel.buildtasks.todo;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import static com.nurflugel.buildtasks.todo.AliasParser.getAliases;
+import static com.nurflugel.buildtasks.todo.LineSplitter.splitLine;
 import static com.nurflugel.buildtasks.todo.User.ALL;
 import static com.nurflugel.buildtasks.todo.User.UNKNOWN;
+import static org.apache.commons.io.FileUtils.readLines;
 import static org.apache.commons.io.FileUtils.writeLines;
-import static org.apache.commons.lang.StringUtils.capitalize;
-import static org.apache.commons.lang.StringUtils.replace;
+import static org.apache.commons.lang.ArrayUtils.indexOf;
+import static org.apache.commons.lang.StringUtils.*;
 
 /** Created with IntelliJ IDEA. User: douglas_bullard Date: 7/7/12 Time: 22:48 To change this template use File | Settings | File Templates. */
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
@@ -29,7 +30,7 @@ public class FindTodosCoreTask
    * The phrase to search for - i.e., "t*do", "C ODEREVIEW" - actually, a comma-delimited list of terms ("c odereview,c odereviewresult"). Optional,
    * if blank, "t*do" is used.
    */
-  private String searchPhrase = "todo";
+  private String[] searchPhrases = { "todo" };
 
   /**
    * A list of names and aliases - the format is like this:
@@ -40,26 +41,21 @@ public class FindTodosCoreTask
    *
    * <p>Optional, if not specified, then no users will show in the graphs.</p>
    */
-  private String namePattern;
-
-  /** User to catch all unknown assignments. */
-  private User unknown = new User(UNKNOWN);
-
-  /** User to catch everything. */
-  private User all = new User(ALL);
+  private String     namePattern;
+  private List<User> users = new ArrayList<User>();
   // -------------------------- OTHER METHODS --------------------------
 
   /** Writes the output to Ant's output so that TeamCity will pick up the data. */
   private void outputToTeamCity(List<User> users, int total)
   {
-    String tag = TEAMCITY_TAG + capitalize(searchPhrase) + 's';
+    String tag = TEAMCITY_TAG + capitalize(searchPhrases[0]) + 's';  // todo how to deal with this???
 
     // log(tag + VALUE + total + END_TAG);
     System.out.println(tag + VALUE + total + END_TAG);
 
     for (User user : users)
     {
-      if (!user.equals(all))
+      if (!user.equals(ALL))
       {
         if (!user.getTodos().isEmpty())
         {
@@ -70,62 +66,125 @@ public class FindTodosCoreTask
     }
   }
 
-  public Map<User, List<TodoItem>> parseLines(String[] lines, List<User> users)
+  public void parseLines(List<User> users, File file, String... lines)
   {
-    return null;
+    for (int lineNumber = 0; lineNumber < lines.length; lineNumber++)
+    {
+      String line = lines[lineNumber];
+
+      for (String phrase : searchPhrases)
+      {
+        if (containsIgnoreCase(line, phrase))
+        {
+          TodoItem todoItem              = new TodoItem(line, file, lineNumber);
+          boolean  noUserFoundForTodoYet = true;
+
+          for (User user : users)
+          {
+            for (String alias : user.aliases)
+            {
+              if (contains(line, alias))
+              {
+                user.addTodo(todoItem);
+                noUserFoundForTodoYet = false;
+
+                break;
+              }
+            }
+          }
+
+          // if no user found, add to unknown
+          if (noUserFoundForTodoYet)
+          {
+            UNKNOWN.addTodo(todoItem);
+          }
+
+          // now, add to all t odos found
+          ALL.addTodo(todoItem);
+        }
+      }
+    }
+  }
+
+  void findTodos() throws IOException
+  {
+    List<User> users = getUsers();
+
+    findTodosInDir(baseDir, users);
+    writeReportOutput(users);
+  }
+
+  void findTodosInDir(File dir, List<User> users) throws IOException
+  {
+    if (dir.isFile())
+    {
+      findTodosInFile(dir, users);
+    }
+    else
+    {
+      File[] files = dir.listFiles();
+
+      for (File file : files)
+      {
+        findTodosInDir(file, users);
+      }
+    }
+  }
+
+  void findTodosInFile(File file, List<User> users) throws IOException
+  {
+    List<String> lines   = readLines(file);
+    String[]     strings = lines.toArray(new String[lines.size()]);
+
+    parseLines(users, file, strings);
   }
 
   /** Writes the output to a file for artifacts. */
   private void writeReportOutput(List<User> users) throws IOException
   {
-    List<String> lines     = new ArrayList<String>();
-    int          maxLength = getMaxLength();
+    List<String> lines = new ArrayList<String>();
 
     lines.add("<html>");
+    lines.add("<title>Todo Analysis</title>");
     lines.add("  <body>");
-    lines.add("    <pre>");
-    lines.add("      <font face=\"Courier New\">");
-    lines.add("Results for  analysis of " + baseDir);
+    lines.add("<h1>Results for analysis of " + baseDir.getName() + "</h1>");
     lines.add("");
 
     for (User user : users)
     {
-      if (!user.equals(all))
+      if (!user.equals(ALL) && !user.equals(UNKNOWN))
       {
-        addLinesForUser(user, lines, maxLength);
+        addLinesForUser(user, lines);
       }
     }
 
-    lines.add("      </font>");
-    lines.add("    </pre>");
+    addLinesForUser(UNKNOWN, lines);
     lines.add("  </body>");
     lines.add("</html>");
 
-    File reportFile = new File(reportDir, searchPhrase + "_list.html");
+    File reportFile = new File(reportDir, searchPhrases[0] + "_list.html");
 
     System.out.println("Writing report to " + reportFile);
     writeLines(reportFile, lines);
   }
 
-  /**
-   * Writes the output for a particular user.
-   *
-   * @param  maxLength  the maximum length of all the file names - used for spacing the output nicely
-   */
-  private static void addLinesForUser(User user, List<String> lines, int maxLength)
+  /** Writes the output for a particular user. */
+  private static void addLinesForUser(User user, List<String> lines)
   {
     List<TodoItem> todos = user.getTodos();
 
     if (!todos.isEmpty())
     {
-      lines.add("Report for user " + user.getName() + ':');
+      lines.add("<p><b>Report for user " + user.getName() + ":</b>");
 
       // log("   Writing output for user " + user.getName(), MSG_INFO);
       System.out.println("   Writing output for user " + user.getName());
+      lines.add("<table>");
 
       for (TodoItem todo : todos)
       {
-        String line = String.format("     %1$" + maxLength + "s  %2$-100s  ", todo.getFile().getName(), todo.getComment());
+        String line = "  <tr><td>" + todo.getFile().getName() + ":" + todo.getLineNumber() + "</td><td width=\"20px\">  </td><td>" + todo.getComment()
+                        + "</td></tr>";
 
         line = replace(line, "<!--", "");  // if we don't replace this, it will ruin the HTML output if there are any lines which contain it in the
                                            // code
@@ -133,42 +192,29 @@ public class FindTodosCoreTask
       }
     }
 
-    lines.add("");
+    lines.add("</table>\n");
   }
-
   // --------------------- GETTER / SETTER METHODS ---------------------
-  private int getMaxLength()
+  public String[] getSearchPhrases()
   {
-    int maxLength = 0;
-
-    for (TodoItem todo : all.getTodos())
-    {
-      maxLength = Math.max(maxLength, todo.getFile().getName().length());
-    }
-
-    return maxLength;
+    return searchPhrases;
   }
 
-  public String getSearchPhrase()
+  public void setSearchPhrases(String... searchPhrases)
   {
-    return searchPhrase;
+    this.searchPhrases = searchPhrases;
   }
 
-  public void setSearchPhrase(String searchPhrase)
+  public List<User> findUsers()
   {
-    this.searchPhrase = searchPhrase;
-  }
-
-  public List<User> getUsers()
-  {
-    String[]   names = LineSplitter.splitLine(namePattern);
+    String[]   names = splitLine(namePattern);
     List<User> users = new ArrayList<User>();
 
     for (String name : names)
     {
       try
       {
-        List<String> aliases = AliasParser.getAliases(name);
+        List<String> aliases = getAliases(name);
         User         user    = new User(aliases);
 
         users.add(user);
@@ -177,6 +223,20 @@ public class FindTodosCoreTask
       {
         e.printStackTrace();  // todo something better
       }
+    }
+
+    // users.add(all);
+    // users.add(unknown);
+    this.users = users;
+
+    return users;
+  }
+
+  public List<User> getUsers()
+  {
+    if (users.isEmpty())
+    {
+      findUsers();
     }
 
     return users;

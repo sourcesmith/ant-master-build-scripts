@@ -21,7 +21,7 @@ public class NameWithAliases
 
   public NameWithAliases(String... names)
   {
-    name = names[0];
+    name = names[0];  // add the ID, so that's always in the list
     Collections.addAll(aliases, names);
   }
 
