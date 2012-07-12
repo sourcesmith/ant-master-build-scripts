@@ -9,9 +9,7 @@ import static java.util.Arrays.asList;
 /** This represents a user and all their aliases. */
 public class User extends NameWithAliases
 {
-  static final User           ALL     = new User("all");
-  static final User           UNKNOWN = new User("unknown");
-  private final Set<TodoItem> todos   = new LinkedHashSet<TodoItem>();
+  private final Set<TodoItem> todos = new LinkedHashSet<TodoItem>();
 
   public User(String... names)
   {

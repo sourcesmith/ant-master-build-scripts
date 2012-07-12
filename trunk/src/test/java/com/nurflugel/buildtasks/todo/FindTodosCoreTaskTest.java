@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import static com.nurflugel.buildtasks.todo.TestResources.getTestFilePath;
-import static com.nurflugel.buildtasks.todo.User.ALL;
-import static com.nurflugel.buildtasks.todo.User.UNKNOWN;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -18,10 +16,10 @@ public class FindTodosCoreTaskTest
   @Test
   public void testDefaultSearchPhrase() throws Exception
   {
-    FindTodosCoreTask task         = new FindTodosCoreTask();
-    String[]          searchPhrase = task.getSearchPhrases();
+    FindTodosCoreTask  task         = new FindTodosCoreTask();
+    List<SearchPhrase> searchPhrase = task.getSearchPhrases();
 
-    assertEquals(searchPhrase[0], "todo");
+    assertEquals(searchPhrase.get(0).getName(), "todo");
   }
 
   @Test
@@ -59,8 +57,7 @@ public class FindTodosCoreTaskTest
 
     task.parseLines(users, new File("someFileName.java"), line);
 
-    User           user  = users.get(0);
-    List<TodoItem> todos = user.getTodos();
+    List<TodoItem> todos = task.getTodosForUser("dbulla");
 
     assertEquals(todos.size(), 1);
   }
@@ -77,8 +74,7 @@ public class FindTodosCoreTaskTest
 
     task.parseLines(users, new File("someFileName.java"), line);
 
-    User           user  = users.get(0);
-    List<TodoItem> todos = user.getTodos();
+    List<TodoItem> todos = task.getTodosForUser("dbulla");
 
     assertEquals(todos.size(), 1);
     assertEquals(todos.get(0).getComment(), line);
@@ -96,17 +92,15 @@ public class FindTodosCoreTaskTest
 
     task.parseLines(users, new File("someFileName.java"), line);
 
-    User           user  = users.get(0);
-    List<TodoItem> todos = user.getTodos();
+    List<TodoItem> todos = task.getTodosForUser("dbulla");
 
     assertEquals(todos.size(), 1);
 
     TodoItem todoItem = todos.get(0);
 
     assertEquals(todoItem.getComment(), line);
-    user = users.get(1);
 
-    List<TodoItem> todos2 = user.getTodos();
+    List<TodoItem> todos2 = task.getTodosForUser("dlabar");
 
     assertEquals(todos2.size(), 1);
 
@@ -130,8 +124,7 @@ public class FindTodosCoreTaskTest
 
     task.findTodosInFile(file, users);
 
-    User           user  = users.get(2);
-    List<TodoItem> todos = user.getTodos();
+    List<TodoItem> todos = task.getTodosForUser("bren");
 
     assertEquals(todos.size(), 1);
   }
@@ -149,7 +142,7 @@ public class FindTodosCoreTaskTest
     List<User> users = task.findUsers();
 
     task.findTodosInFile(file, users);
-    assertEquals(users.get(0).getTodos().size(), 6);
+    assertEquals(task.getTodosForUser("dbulla").size(), 6);
   }
 
   @Test
@@ -165,9 +158,9 @@ public class FindTodosCoreTaskTest
     List<User> users = task.findUsers();
 
     task.findTodosInFile(file, users);
-    assertEquals(users.get(0).getTodos().size(), 19);
-    assertEquals(users.get(1).getTodos().size(), 2);
-    assertEquals(users.get(2).getTodos().size(), 0);
+    assertEquals(task.getTodosForUser("dbulla").size(), 19);
+    assertEquals(task.getTodosForUser("snara").size(), 2);
+    assertEquals(task.getTodosForUser("bren").size(), 0);
   }
 
   @Test
@@ -181,9 +174,9 @@ public class FindTodosCoreTaskTest
     List<User> users = task.findUsers();
 
     task.findTodosInDir(file, users);
-    assertEquals(users.get(0).getTodos().size(), 25);
-    assertEquals(users.get(1).getTodos().size(), 2);
-    assertEquals(users.get(2).getTodos().size(), 1);
+    assertEquals(task.getTodosForUser("dbulla").size(), 25);
+    assertEquals(task.getTodosForUser("snara").size(), 2);
+    assertEquals(task.getTodosForUser("bren").size(), 1);
   }
 
   @Test
@@ -193,18 +186,34 @@ public class FindTodosCoreTaskTest
     File              file = new File(getTestFilePath("dir"));
 
     task.setBaseDir(file);
+    task.setShouldOutputToTeamCity(true);
     task.setReportDir(new File("build/reports/dir"));
     task.setNamePattern("dbulla(dgb,doug);snara(snara3,sunitha);bren");
     task.findTodos();
+    assertEquals(task.getTodosForUser("dbulla").size(), 25);
+    assertEquals(task.getTodosForUser("snara").size(), 2);
+    assertEquals(task.getTodosForUser("bren").size(), 1);
 
-    List<User> users = task.getUsers();
+    List<TodoItem> todos = task.getTodosForUser("all");
 
-    assertEquals(users.get(0).getTodos().size(), 25);
-    assertEquals(users.get(1).getTodos().size(), 2);
-    assertEquals(users.get(2).getTodos().size(), 1);
-    assertEquals(ALL.getTodos().size(), 34);
-    assertEquals(UNKNOWN.getTodos().size(), 3);
+    assertEquals(todos.size(), 31);
+    assertEquals(task.getTodosForUser("unknown").size(), 3);
   }
 
-  // todo find all tasks, tasks for unknown users
+  @Test
+  public void testCodeReviews() throws IOException
+  {
+    FindTodosCoreTask task = new FindTodosCoreTask();
+    File              file = new File(getTestFilePath("dir"));
+
+    task.setBaseDir(file);
+    task.setSearchPhrase("codereview(code review,codereviewresult,code_review,code review result)");
+    task.setShouldOutputToTeamCity(true);
+    task.setReportDir(new File("build/reports/dir"));
+    task.setNamePattern("dbulla(dgb,doug);snara(snara3,sunitha);bren");
+    task.findTodos();
+    assertEquals(task.getTodosForUser("dbulla").size(), 3);
+    assertEquals(task.getTodosForUser("snara").size(), 0);
+    assertEquals(task.getTodosForUser("bren").size(), 0);
+  }
 }
