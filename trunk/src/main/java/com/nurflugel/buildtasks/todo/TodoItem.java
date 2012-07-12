@@ -2,7 +2,7 @@ package com.nurflugel.buildtasks.todo;
 
 import java.io.File;
 
-/** Representation of a todo item. */
+/** Representation of a t odo item. */
 public class TodoItem
 {
   private final String comment;
@@ -55,12 +55,10 @@ public class TodoItem
   @Override
   public int hashCode()
   {
-    int result = (comment != null) ? comment.hashCode()
-                                   : 0;
+    int result = 31 * lineNumber;
 
-    result = (31 * result) + ((file != null) ? file.hashCode()
-                                             : 0);
-    result = (31 * result) + lineNumber;
+    result = (31 * result) + comment.hashCode();
+    result = (31 * result) + file.getAbsolutePath().hashCode();
 
     return result;
   }
@@ -69,7 +67,7 @@ public class TodoItem
   public String toString()
   {
     return "Todo{"
-             + "file=" + file + ", lineNumber=" + lineNumber + ", comment='" + comment + '\'' + '}';
+             + "file=" + file.getName() + ", lineNumber=" + lineNumber + ", comment='" + comment + '\'' + '}';
   }
 
   // --------------------- GETTER / SETTER METHODS ---------------------

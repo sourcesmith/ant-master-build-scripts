@@ -1,24 +1,21 @@
 package com.nurflugel.buildtasks.todo;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import static java.util.Arrays.asList;
 
 /** This represents a user and all their aliases. */
 public class User extends NameWithAliases
 {
-  static final String          ALL     = "all";
-  static final String          UNKNOWN = "unknown";
-  private final List<TodoItem> todos   = new ArrayList<TodoItem>();
+  static final User           ALL     = new User("all");
+  static final User           UNKNOWN = new User("unknown");
+  private final Set<TodoItem> todos   = new LinkedHashSet<TodoItem>();
 
-  public User(String name)
+  public User(String... names)
   {
-    super(name);
-
-    if (!name.equals(ALL) && !name.equals(UNKNOWN))  // these guys don't get default aliases
-    {
-      this.name = name;                              // add the ID, so that's always in the list
-    }
+    super(names);
   }
 
   public User(List<String> aliases)
@@ -29,7 +26,11 @@ public class User extends NameWithAliases
   // -------------------------- OTHER METHODS --------------------------
   public void addTodo(TodoItem todo)
   {
-    todos.add(todo);
+    if (todos.contains(todo)) {}
+    else
+    {
+      todos.add(todo);
+    }
   }
 
   @Override
@@ -37,11 +38,11 @@ public class User extends NameWithAliases
   {
     return "User{"
              + "aliases=" + ((aliases == null) ? null
-                                               : asList(aliases)) + ", id='" + name + '\'' + ", todos=" + todos + '}';
+                                               : asList(aliases)) + ", id='" + name + '\'' + ", todos count=" + todos.size() + '}';
   }
 
   public List<TodoItem> getTodos()
   {
-    return todos;
+    return new ArrayList<TodoItem>(todos);
   }
 }

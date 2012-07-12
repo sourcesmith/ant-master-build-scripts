@@ -29,15 +29,16 @@ public class LineSplitter
     // reject wrong parenthesis types
     if (containsAny(namePattern, "{}[]"))
     {
+      // todo move away from Ant exceptions
       // First, validate that the line starts with the word "users"
       BuildException buildException = new BuildException("Name pattern " + namePattern
-                                                           + " was not in the expected pattern of 'name1(alias1;alias2...),name2(alias1...),name3...");
+                                                           + " was not in the expected pattern of 'name1(alias1,alias2...);name2(alias1...);name3...");
 
       throw buildException;
     }
 
     // break the line up into users
-    String[] tokens = namePattern.split(",");
+    String[] tokens = namePattern.split(";");
 
     if (tokens.length == 0)
     {
