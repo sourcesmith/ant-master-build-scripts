@@ -2,14 +2,13 @@ package com.nurflugel.buildtasks.todo;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import static com.nurflugel.buildtasks.todo.AliasParser.getAliases;
 import static com.nurflugel.buildtasks.todo.LineSplitter.splitLine;
-import static com.nurflugel.buildtasks.todo.User.ALL;
-import static com.nurflugel.buildtasks.todo.User.UNKNOWN;
 import static org.apache.commons.io.FileUtils.readLines;
 import static org.apache.commons.io.FileUtils.writeLines;
-import static org.apache.commons.lang.ArrayUtils.indexOf;
 import static org.apache.commons.lang.StringUtils.*;
 
 /** Created with IntelliJ IDEA. User: douglas_bullard Date: 7/7/12 Time: 22:48 To change this template use File | Settings | File Templates. */
@@ -19,18 +18,21 @@ public class FindTodosCoreTask
   private static final String VALUE        = "' value='";
   private static final String END_TAG      = "']";
   private static final String TEAMCITY_TAG = "##teamcity[buildStatisticValue key='numberOf";
+  private final User          ALL          = new User("all");
+  private final User          UNKNOWN      = new User("unknown");
 
   /** The dir to be scanned for t*dos. */
   private File baseDir;
 
   /** Where the report goes. */
-  private File reportDir;
+  private File    reportDir;
+  private boolean shouldOutputToTeamCity = false;
 
   /**
    * The phrase to search for - i.e., "t*do", "C ODEREVIEW" - actually, a comma-delimited list of terms ("c odereview,c odereviewresult"). Optional,
    * if blank, "t*do" is used.
    */
-  private String[] searchPhrases = { "todo" };
+  private List<SearchPhrase> searchPhrases;
 
   /**
    * A list of names and aliases - the format is like this:
@@ -43,14 +45,26 @@ public class FindTodosCoreTask
    */
   private String     namePattern;
   private List<User> users = new ArrayList<User>();
+
+  public FindTodosCoreTask()
+  {
+    searchPhrases = new ArrayList<SearchPhrase>();
+
+    List<String> dibble = new ArrayList<String>();
+
+    dibble.add("todo");
+    searchPhrases.add(new SearchPhrase(dibble));
+  }
   // -------------------------- OTHER METHODS --------------------------
 
   /** Writes the output to Ant's output so that TeamCity will pick up the data. */
-  private void outputToTeamCity(List<User> users, int total)
+  private void outputToTeamCity(List<User> users)
   {
-    String tag = TEAMCITY_TAG + capitalize(searchPhrases[0]) + 's';  // todo how to deal with this???
+    String tag = TEAMCITY_TAG + capitalize(searchPhrases.get(0).getName()) + 's';  // todo how to deal with this???
 
     // log(tag + VALUE + total + END_TAG);
+    int total = ALL.getTodos().size();
+
     System.out.println(tag + VALUE + total + END_TAG);
 
     for (User user : users)
@@ -72,35 +86,38 @@ public class FindTodosCoreTask
     {
       String line = lines[lineNumber];
 
-      for (String phrase : searchPhrases)
+      for (SearchPhrase phrase : searchPhrases)
       {
-        if (containsIgnoreCase(line, phrase))
+        for (String searchAlias : phrase.getAliases())
         {
-          TodoItem todoItem              = new TodoItem(line, file, lineNumber);
-          boolean  noUserFoundForTodoYet = true;
-
-          for (User user : users)
+          if (containsIgnoreCase(line, searchAlias))
           {
-            for (String alias : user.aliases)
-            {
-              if (contains(line, alias))
-              {
-                user.addTodo(todoItem);
-                noUserFoundForTodoYet = false;
+            TodoItem todoItem              = new TodoItem(line, file, lineNumber);
+            boolean  noUserFoundForTodoYet = true;
 
-                break;
+            for (User user : users)
+            {
+              for (String alias : user.getAliases())
+              {
+                if (contains(line, alias))
+                {
+                  user.addTodo(todoItem);
+                  noUserFoundForTodoYet = false;
+
+                  break;
+                }
               }
             }
-          }
 
-          // if no user found, add to unknown
-          if (noUserFoundForTodoYet)
-          {
-            UNKNOWN.addTodo(todoItem);
-          }
+            // if no user found, add to unknown
+            if (noUserFoundForTodoYet)
+            {
+              UNKNOWN.addTodo(todoItem);
+            }
 
-          // now, add to all t odos found
-          ALL.addTodo(todoItem);
+            // now, add to all t odos found
+            ALL.addTodo(todoItem);
+          }
         }
       }
     }
@@ -112,6 +129,7 @@ public class FindTodosCoreTask
 
     findTodosInDir(baseDir, users);
     writeReportOutput(users);
+    outputToTeamCity(users);
   }
 
   void findTodosInDir(File dir, List<User> users) throws IOException
@@ -162,7 +180,7 @@ public class FindTodosCoreTask
     lines.add("  </body>");
     lines.add("</html>");
 
-    File reportFile = new File(reportDir, searchPhrases[0] + "_list.html");
+    File reportFile = new File(reportDir, searchPhrases.get(0) + "_list.html");
 
     System.out.println("Writing report to " + reportFile);
     writeLines(reportFile, lines);
@@ -187,22 +205,19 @@ public class FindTodosCoreTask
                         + "</td></tr>";
 
         line = replace(line, "<!--", "");  // if we don't replace this, it will ruin the HTML output if there are any lines which contain it in the
-                                           // code
+
+        // code
         lines.add(line);
       }
     }
 
     lines.add("</table>\n");
   }
+
   // --------------------- GETTER / SETTER METHODS ---------------------
-  public String[] getSearchPhrases()
+  public List<SearchPhrase> getSearchPhrases()
   {
     return searchPhrases;
-  }
-
-  public void setSearchPhrases(String... searchPhrases)
-  {
-    this.searchPhrases = searchPhrases;
   }
 
   public List<User> findUsers()
@@ -255,5 +270,56 @@ public class FindTodosCoreTask
   public void setReportDir(File dir)
   {
     reportDir = dir;
+  }
+
+  public void setShouldOutputToTeamCity(boolean shouldOutputToTeamCity)
+  {
+    this.shouldOutputToTeamCity = shouldOutputToTeamCity;
+  }
+
+  public void setSearchPhrase(String text)
+  {
+    String[]           names   = splitLine(text);
+    List<SearchPhrase> phrases = new ArrayList<SearchPhrase>();
+
+    for (String name : names)
+    {
+      try
+      {
+        List<String> aliases = getAliases(name);
+        SearchPhrase phrase  = new SearchPhrase(aliases);
+
+        phrases.add(phrase);
+      }
+      catch (BadParsingException e)
+      {
+        e.printStackTrace();
+      }
+
+      searchPhrases = phrases;
+    }
+  }
+
+  public List<TodoItem> getTodosForUser(String name)
+  {
+    for (User user : users)
+    {
+      if (user.getName().equalsIgnoreCase(name))
+      {
+        return user.getTodos();
+      }
+    }
+
+    if (name.equals("all"))
+    {
+      return ALL.getTodos();
+    }
+
+    if (name.equals("unknown"))
+    {
+      return UNKNOWN.getTodos();
+    }
+
+    return new ArrayList<TodoItem>();
   }
 }
