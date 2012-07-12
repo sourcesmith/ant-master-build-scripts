@@ -7,8 +7,6 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
 /** Created with IntelliJ IDEA. User: dbulla Date: 6/28/12 Time: 4:17 PM To change this template use File | Settings | File Templates. */
 public class LineSplitter
 {
-  private LineSplitter() {}
-
   /**
    * Take the name pattern and parse it into a list of users. The pattern template looks like this:
    *
@@ -47,4 +45,6 @@ public class LineSplitter
 
     return tokens;
   }
+
+  private LineSplitter() {}
 }

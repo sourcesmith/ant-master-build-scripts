@@ -62,6 +62,19 @@ public class FindTodosAntTask extends Task
     }
   }
 
+  public void findTodos(File dir, List<User> users) {}
+
+  // --------------------- GETTER / SETTER METHODS ---------------------
+  public String getSearchPhrase()
+  {
+    return searchPhrase;
+  }
+
+  public void setSearchPhrase(String searchPhrase)
+  {
+    this.searchPhrase = searchPhrase;
+  }
+
   /**
    * Get all the t*dos from the files in the directory.
    *
@@ -152,16 +165,4 @@ public class FindTodosAntTask extends Task
   {
     reportDir = dir;
   }
-
-  public void setSearchPhrase(String searchPhrase)
-  {
-    this.searchPhrase = searchPhrase;
-  }
-
-  public String getSearchPhrase()
-  {
-    return searchPhrase;
-  }
-
-  public void findTodos(File dir, List<User> users) {}
 }

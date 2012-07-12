@@ -31,16 +31,17 @@ public class User extends NameWithAliases
     }
   }
 
+  public List<TodoItem> getTodos()
+  {
+    return new ArrayList<TodoItem>(todos);
+  }
+
+  // ------------------------ CANONICAL METHODS ------------------------
   @Override
   public String toString()
   {
     return "User{"
              + "aliases=" + ((aliases == null) ? null
                                                : asList(aliases)) + ", id='" + name + '\'' + ", todos count=" + todos.size() + '}';
-  }
-
-  public List<TodoItem> getTodos()
-  {
-    return new ArrayList<TodoItem>(todos);
   }
 }

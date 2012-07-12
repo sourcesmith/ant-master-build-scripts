@@ -25,17 +25,6 @@ public class NameWithAliases
     Collections.addAll(aliases, names);
   }
 
-  // --------------------- GETTER / SETTER METHODS ---------------------
-  public Set<String> getAliases()
-  {
-    return aliases;
-  }
-
-  public String getName()
-  {
-    return name;
-  }
-
   // ------------------------ CANONICAL METHODS ------------------------
   @Override
   public boolean equals(Object o)
@@ -66,5 +55,16 @@ public class NameWithAliases
   {
     return (name != null) ? name.hashCode()
                           : 0;
+  }
+
+  // --------------------- GETTER / SETTER METHODS ---------------------
+  public Set<String> getAliases()
+  {
+    return aliases;
+  }
+
+  public String getName()
+  {
+    return name;
   }
 }
