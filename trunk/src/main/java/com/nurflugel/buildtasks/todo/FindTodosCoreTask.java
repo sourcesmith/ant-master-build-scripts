@@ -55,29 +55,40 @@ public class FindTodosCoreTask
     dibble.add("todo");
     searchPhrases.add(new SearchPhrase(dibble));
   }
+
   // -------------------------- OTHER METHODS --------------------------
-
-  /** Writes the output to Ant's output so that TeamCity will pick up the data. */
-  private void outputToTeamCity(List<User> users)
+  void findTodos() throws IOException
   {
-    String tag = TEAMCITY_TAG + capitalize(searchPhrases.get(0).getName()) + 's';  // todo how to deal with this???
+    List<User> users = getUsers();
 
-    // log(tag + VALUE + total + END_TAG);
-    int total = ALL.getTodos().size();
+    findTodosInDir(baseDir, users);
+    writeReportOutput(users);
+    outputToTeamCity(users);
+  }
 
-    System.out.println(tag + VALUE + total + END_TAG);
-
-    for (User user : users)
+  void findTodosInDir(File dir, List<User> users) throws IOException
+  {
+    if (dir.isFile())
     {
-      if (!user.equals(ALL))
+      findTodosInFile(dir, users);
+    }
+    else
+    {
+      File[] files = dir.listFiles();
+
+      for (File file : files)
       {
-        if (!user.getTodos().isEmpty())
-        {
-          // log(tag + '_' + user.getName() + VALUE + user.getTodos().size() + END_TAG);
-          System.out.println(tag + '_' + user.getName() + VALUE + user.getTodos().size() + END_TAG);
-        }
+        findTodosInDir(file, users);
       }
     }
+  }
+
+  void findTodosInFile(File file, List<User> users) throws IOException
+  {
+    List<String> lines   = readLines(file);
+    String[]     strings = lines.toArray(new String[lines.size()]);
+
+    parseLines(users, file, strings);
   }
 
   public void parseLines(List<User> users, File file, String... lines)
@@ -121,40 +132,6 @@ public class FindTodosCoreTask
         }
       }
     }
-  }
-
-  void findTodos() throws IOException
-  {
-    List<User> users = getUsers();
-
-    findTodosInDir(baseDir, users);
-    writeReportOutput(users);
-    outputToTeamCity(users);
-  }
-
-  void findTodosInDir(File dir, List<User> users) throws IOException
-  {
-    if (dir.isFile())
-    {
-      findTodosInFile(dir, users);
-    }
-    else
-    {
-      File[] files = dir.listFiles();
-
-      for (File file : files)
-      {
-        findTodosInDir(file, users);
-      }
-    }
-  }
-
-  void findTodosInFile(File file, List<User> users) throws IOException
-  {
-    List<String> lines   = readLines(file);
-    String[]     strings = lines.toArray(new String[lines.size()]);
-
-    parseLines(users, file, strings);
   }
 
   /** Writes the output to a file for artifacts. */
@@ -214,67 +191,50 @@ public class FindTodosCoreTask
     lines.add("</table>\n");
   }
 
-  // --------------------- GETTER / SETTER METHODS ---------------------
-  public List<SearchPhrase> getSearchPhrases()
+  /** Writes the output to Ant's output so that TeamCity will pick up the data. */
+  private void outputToTeamCity(List<User> users)
   {
-    return searchPhrases;
+    String tag = TEAMCITY_TAG + capitalize(searchPhrases.get(0).getName()) + 's';  // todo how to deal with this???
+
+    // log(tag + VALUE + total + END_TAG);
+    int total = ALL.getTodos().size();
+
+    System.out.println(tag + VALUE + total + END_TAG);
+
+    for (User user : users)
+    {
+      if (!user.equals(ALL))
+      {
+        if (!user.getTodos().isEmpty())
+        {
+          // log(tag + '_' + user.getName() + VALUE + user.getTodos().size() + END_TAG);
+          System.out.println(tag + '_' + user.getName() + VALUE + user.getTodos().size() + END_TAG);
+        }
+      }
+    }
   }
 
-  public List<User> findUsers()
+  public List<TodoItem> getTodosForUser(String name)
   {
-    String[]   names = splitLine(namePattern);
-    List<User> users = new ArrayList<User>();
-
-    for (String name : names)
+    for (User user : users)
     {
-      try
+      if (user.getName().equalsIgnoreCase(name))
       {
-        List<String> aliases = getAliases(name);
-        User         user    = new User(aliases);
-
-        users.add(user);
-      }
-      catch (BadParsingException e)
-      {
-        e.printStackTrace();  // todo something better
+        return user.getTodos();
       }
     }
 
-    // users.add(all);
-    // users.add(unknown);
-    this.users = users;
-
-    return users;
-  }
-
-  public List<User> getUsers()
-  {
-    if (users.isEmpty())
+    if (name.equals("all"))
     {
-      findUsers();
+      return ALL.getTodos();
     }
 
-    return users;
-  }
+    if (name.equals("unknown"))
+    {
+      return UNKNOWN.getTodos();
+    }
 
-  public void setBaseDir(File dir)
-  {
-    baseDir = dir;
-  }
-
-  public void setNamePattern(String namePattern)
-  {
-    this.namePattern = namePattern;
-  }
-
-  public void setReportDir(File dir)
-  {
-    reportDir = dir;
-  }
-
-  public void setShouldOutputToTeamCity(boolean shouldOutputToTeamCity)
-  {
-    this.shouldOutputToTeamCity = shouldOutputToTeamCity;
+    return new ArrayList<TodoItem>();
   }
 
   public void setSearchPhrase(String text)
@@ -300,26 +260,64 @@ public class FindTodosCoreTask
     }
   }
 
-  public List<TodoItem> getTodosForUser(String name)
+  // --------------------- GETTER / SETTER METHODS ---------------------
+  public List<SearchPhrase> getSearchPhrases()
   {
-    for (User user : users)
+    return searchPhrases;
+  }
+
+  public List<User> getUsers()
+  {
+    if (users.isEmpty())
     {
-      if (user.getName().equalsIgnoreCase(name))
+      findUsers();
+    }
+
+    return users;
+  }
+
+  public List<User> findUsers()
+  {
+    String[]   names = splitLine(namePattern);
+    List<User> users = new ArrayList<User>();
+
+    for (String name : names)
+    {
+      try
       {
-        return user.getTodos();
+        List<String> aliases = getAliases(name);
+        User         user    = new User(aliases);
+
+        users.add(user);
+      }
+      catch (BadParsingException e)
+      {
+        e.printStackTrace();  // todo something better
       }
     }
 
-    if (name.equals("all"))
-    {
-      return ALL.getTodos();
-    }
+    this.users = users;
 
-    if (name.equals("unknown"))
-    {
-      return UNKNOWN.getTodos();
-    }
+    return users;
+  }
 
-    return new ArrayList<TodoItem>();
+  public void setBaseDir(File dir)
+  {
+    baseDir = dir;
+  }
+
+  public void setNamePattern(String namePattern)
+  {
+    this.namePattern = namePattern;
+  }
+
+  public void setReportDir(File dir)
+  {
+    reportDir = dir;
+  }
+
+  public void setShouldOutputToTeamCity(boolean shouldOutputToTeamCity)
+  {
+    this.shouldOutputToTeamCity = shouldOutputToTeamCity;
   }
 }

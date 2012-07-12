@@ -19,45 +19,12 @@ public class ValidatePropertiesTask extends Task
   private Set<String>         buildFiles     = new HashSet<String>();
   private String              errorText;
 
+  // -------------------------- OTHER METHODS --------------------------
   @Override
   public void execute() throws BuildException
   {
     buildFiles = getBuildFiles();
     doWork();
-  }
-
-  public void doWork()
-  {
-    Set<String> properties           = new HashSet<String>();
-    Set<String> allDefinedProperties = new HashSet<String>();
-    Set<String> notMissingProperties = parseExceptions();
-
-    try
-    {
-      for (String buildFile : buildFiles)
-      {
-        System.out.println("buildFile = " + buildFile);
-
-        List<String> lines = readLines(new File(buildFile));
-
-        processBuildFileLines(properties, allDefinedProperties, lines);
-      }
-    }
-    catch (IOException e)
-    {
-      throw new BuildException(e);
-    }
-
-    validateProject(properties, allDefinedProperties, notMissingProperties);
-  }
-
-  private void processBuildFileLines(Set<String> properties, Set<String> allDefinedProperties, List<String> lines)
-  {
-    for (String line : lines)
-    {
-      parseLineForProps(properties, line);
-      parseLineForDefinations(allDefinedProperties, line);
-    }
   }
 
   private Set<String> getBuildFiles()
@@ -87,6 +54,31 @@ public class ValidatePropertiesTask extends Task
                                 : new Hashtable();
   }
 
+  public void doWork()
+  {
+    Set<String> properties           = new HashSet<String>();
+    Set<String> allDefinedProperties = new HashSet<String>();
+    Set<String> notMissingProperties = parseExceptions();
+
+    try
+    {
+      for (String buildFile : buildFiles)
+      {
+        System.out.println("buildFile = " + buildFile);
+
+        List<String> lines = readLines(new File(buildFile));
+
+        processBuildFileLines(properties, allDefinedProperties, lines);
+      }
+    }
+    catch (IOException e)
+    {
+      throw new BuildException(e);
+    }
+
+    validateProject(properties, allDefinedProperties, notMissingProperties);
+  }
+
   private Set<String> parseExceptions()
   {
     Set<String> notMissingProperties = new HashSet<String>();
@@ -98,6 +90,15 @@ public class ValidatePropertiesTask extends Task
     }
 
     return notMissingProperties;
+  }
+
+  private void processBuildFileLines(Set<String> properties, Set<String> allDefinedProperties, List<String> lines)
+  {
+    for (String line : lines)
+    {
+      parseLineForProps(properties, line);
+      parseLineForDefinations(allDefinedProperties, line);
+    }
   }
 
   static void parseLineForProps(Set<String> properties, String line)
@@ -177,13 +178,14 @@ public class ValidatePropertiesTask extends Task
     buildFiles.add(buildFileName);
   }
 
-  public void setExceptions(String exceptions)
-  {
-    this.exceptions = exceptions;
-  }
-
+  // --------------------- GETTER / SETTER METHODS ---------------------
   public String getErrorText()
   {
     return errorText;
+  }
+
+  public void setExceptions(String exceptions)
+  {
+    this.exceptions = exceptions;
   }
 }
