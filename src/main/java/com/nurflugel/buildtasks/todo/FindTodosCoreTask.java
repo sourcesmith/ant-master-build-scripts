@@ -46,6 +46,9 @@ public class FindTodosCoreTask
   private String     namePattern;
   private List<User> users = new ArrayList<User>();
 
+  /** used to store output to TeamCity for unit testing, as scraping System.out is a pain. */
+  private List<String> outputLines = new ArrayList<String>();
+
   public FindTodosCoreTask()
   {
     searchPhrases = new ArrayList<SearchPhrase>();
@@ -194,21 +197,28 @@ public class FindTodosCoreTask
   /** Writes the output to Ant's output so that TeamCity will pick up the data. */
   private void outputToTeamCity(List<User> users)
   {
-    String tag = TEAMCITY_TAG + capitalize(searchPhrases.get(0).getName()) + 's';  // todo how to deal with this???
-
-    // log(tag + VALUE + total + END_TAG);
-    int total = ALL.getTodos().size();
-
-    System.out.println(tag + VALUE + total + END_TAG);
-
-    for (User user : users)
+    if (shouldOutputToTeamCity)
     {
-      if (!user.equals(ALL))
+      String tag = TEAMCITY_TAG + capitalize(searchPhrases.get(0).getName()) + 's';  // todo how to deal with this???
+
+      // log(tag + VALUE + total + END_TAG);
+      int    total = ALL.getTodos().size();
+      String line  = tag + VALUE + total + END_TAG;
+
+      System.out.println(line);
+      outputLines.add(line);
+
+      for (User user : users)
       {
-        if (!user.getTodos().isEmpty())
+        if (!user.equals(ALL))
         {
-          // log(tag + '_' + user.getName() + VALUE + user.getTodos().size() + END_TAG);
-          System.out.println(tag + '_' + user.getName() + VALUE + user.getTodos().size() + END_TAG);
+          if (!user.getTodos().isEmpty())
+          {
+            // log(tag + '_' + user.getName() + VALUE + user.getTodos().size() + END_TAG);
+            line = tag + '_' + user.getName() + VALUE + user.getTodos().size() + END_TAG;
+            System.out.println(line);
+            outputLines.add(line);
+          }
         }
       }
     }
@@ -319,5 +329,10 @@ public class FindTodosCoreTask
   public void setShouldOutputToTeamCity(boolean shouldOutputToTeamCity)
   {
     this.shouldOutputToTeamCity = shouldOutputToTeamCity;
+  }
+
+  public List<String> getOutput()
+  {
+    return outputLines;
   }
 }
