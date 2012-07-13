@@ -201,6 +201,23 @@ public class FindTodosCoreTaskTest
   }
 
   @Test
+  public void testNoUserFound() throws IOException
+  {
+    FindTodosCoreTask task = new FindTodosCoreTask();
+    File              file = new File(getTestFilePath("dir"));
+
+    task.setBaseDir(file);
+    task.setShouldOutputToTeamCity(true);
+    task.setReportDir(new File("build/reports/dir"));
+    task.setNamePattern("dbulla(dgb,doug);snara(snara3,sunitha);bren");
+    task.findTodos();
+
+    List<TodoItem> todos = task.getTodosForUser("dibble");
+
+    assertEquals(todos.size(), 0);
+  }
+
+  @Test
   public void testCodeReviews() throws IOException
   {
     FindTodosCoreTask task = new FindTodosCoreTask();
