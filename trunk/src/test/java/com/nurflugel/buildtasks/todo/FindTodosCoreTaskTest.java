@@ -167,13 +167,12 @@ public class FindTodosCoreTaskTest
   public void testDirsManyCommentsManyUsers() throws IOException
   {
     FindTodosCoreTask task = new FindTodosCoreTask();
-    File              file = new File(getTestFilePath("dir"));
 
     task.setNamePattern("dbulla(dgb,doug);snara(snara3,sunitha);bren");
 
     List<User> users = task.findUsers();
 
-    task.findTodosInDir(file, users);
+    task.findTodosInDir(new File(getTestFilePath("dir")), users);
     assertEquals(task.getTodosForUser("dbulla").size(), 25);
     assertEquals(task.getTodosForUser("snara").size(), 2);
     assertEquals(task.getTodosForUser("bren").size(), 1);
@@ -183,10 +182,8 @@ public class FindTodosCoreTaskTest
   public void testTodos() throws IOException
   {
     FindTodosCoreTask task = new FindTodosCoreTask();
-    File              file = new File(getTestFilePath("dir"));
 
-    task.setBaseDir(file);
-    task.setShouldOutputToTeamCity(true);
+    task.setBaseDir(new File(getTestFilePath("dir")));
     task.setReportDir(new File("build/reports/dir"));
     task.setNamePattern("dbulla(dgb,doug);snara(snara3,sunitha);bren");
     task.findTodos();
@@ -204,10 +201,8 @@ public class FindTodosCoreTaskTest
   public void testNoUserFound() throws IOException
   {
     FindTodosCoreTask task = new FindTodosCoreTask();
-    File              file = new File(getTestFilePath("dir"));
 
-    task.setBaseDir(file);
-    task.setShouldOutputToTeamCity(true);
+    task.setBaseDir(new File(getTestFilePath("dir")));
     task.setReportDir(new File("build/reports/dir"));
     task.setNamePattern("dbulla(dgb,doug);snara(snara3,sunitha);bren");
     task.findTodos();
@@ -221,16 +216,40 @@ public class FindTodosCoreTaskTest
   public void testCodeReviews() throws IOException
   {
     FindTodosCoreTask task = new FindTodosCoreTask();
-    File              file = new File(getTestFilePath("dir"));
 
-    task.setBaseDir(file);
+    task.setBaseDir(new File(getTestFilePath("dir")));
     task.setSearchPhrase("codereview(code review,codereviewresult,code_review,code review result)");
-    task.setShouldOutputToTeamCity(true);
     task.setReportDir(new File("build/reports/dir"));
     task.setNamePattern("dbulla(dgb,doug);snara(snara3,sunitha);bren");
     task.findTodos();
     assertEquals(task.getTodosForUser("dbulla").size(), 3);
     assertEquals(task.getTodosForUser("snara").size(), 0);
     assertEquals(task.getTodosForUser("bren").size(), 0);
+  }
+
+  @Test
+  public void testTeamCityOutput() throws IOException
+  {
+    FindTodosCoreTask task = new FindTodosCoreTask();
+
+    task.setBaseDir(new File(getTestFilePath("dir")));
+    task.setShouldOutputToTeamCity(true);
+    task.setReportDir(new File("build/reports/dir"));
+    task.setNamePattern("dbulla(dgb,doug);snara(snara3,sunitha);bren");
+    task.findTodos();
+
+    List<String> output         = task.getOutput();
+    String[]     expectedOutput =
+    {
+      "##teamcity[buildStatisticValue key='numberOfTodos' value='31']",         //
+      "##teamcity[buildStatisticValue key='numberOfTodos_dbulla' value='25']",  //
+      "##teamcity[buildStatisticValue key='numberOfTodos_snara' value='2']",    //
+      "##teamcity[buildStatisticValue key='numberOfTodos_bren' value='1']"      //
+    };
+
+    for (int i = 0; i < expectedOutput.length; i++)
+    {
+      assertEquals(output.get(i), expectedOutput[i]);
+    }
   }
 }
