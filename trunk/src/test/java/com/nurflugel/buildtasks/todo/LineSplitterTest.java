@@ -1,5 +1,6 @@
 package com.nurflugel.buildtasks.todo;
 
+import com.nurflugel.buildtasks.todo.exceptions.BadParsingException;
 import org.apache.tools.ant.BuildException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -43,32 +44,32 @@ public class LineSplitterTest
     assertTrue(strings[2].startsWith("dduddl"));
   }
 
-  @Test(expectedExceptions = BuildException.class)
-  public void testBadChars1()
+  @Test(expectedExceptions = BadParsingException.class)
+  public void testBadChars1() throws BadParsingException
   {
     splitLine("dbulla(dgb,douglas,doug];dlabar(derek);dduddl(dave,david)");
   }
 
-  @Test(expectedExceptions = BuildException.class)
-  public void testBadChars2()
+  @Test(expectedExceptions = BadParsingException.class)
+  public void testBadChars2() throws BadParsingException
   {
     splitLine("dbulla(dgb,douglas,doug[,dlabar(derek),dduddl(dave,david)");
   }
 
-  @Test(expectedExceptions = BuildException.class)
-  public void testBadChars3()
+  @Test(expectedExceptions = BadParsingException.class)
+  public void testBadChars3() throws BadParsingException
   {
     splitLine("dbulla(dgb,douglas,doug{,dlabar(derek),dduddl(dave,david)");
   }
 
-  @Test(expectedExceptions = BuildException.class)
-  public void testBadChars4()
+  @Test(expectedExceptions = BadParsingException.class)
+  public void testBadChars4() throws BadParsingException
   {
     splitLine("dbulla(dgb,douglas,doug},dlabar(derek),dduddl(dave,david)");
   }
 
   @Test
-  public void testNoNames()
+  public void testNoNames() throws BadParsingException
   {
     String   namePattern = "didkdksksks slkjlskjslks";
     String[] strings     = splitLine(namePattern);
@@ -78,7 +79,7 @@ public class LineSplitterTest
   }
 
   @Test
-  public void testNoText()
+  public void testNoText() throws BadParsingException
   {
     String[] strings = splitLine("");
 

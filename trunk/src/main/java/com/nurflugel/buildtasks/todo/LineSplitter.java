@@ -1,10 +1,12 @@
 package com.nurflugel.buildtasks.todo;
 
+import com.nurflugel.buildtasks.todo.exceptions.BadParsingException;
 import org.apache.tools.ant.BuildException;
+import static com.nurflugel.buildtasks.todo.exceptions.BadParsingException.EXPECTED_FORMAT;
 import static org.apache.commons.lang.StringUtils.containsAny;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
-/** Created with IntelliJ IDEA. User: dbulla Date: 6/28/12 Time: 4:17 PM To change this template use File | Settings | File Templates. */
+/** Splitter to take list of users/terms and split them for further processing. */
 public class LineSplitter
 {
   /**
@@ -16,7 +18,7 @@ public class LineSplitter
    *
    * @throws  BuildException  if the line isn't in the expected format
    */
-  public static String[] splitLine(String namePattern)
+  public static String[] splitLine(String namePattern) throws BadParsingException
   {
     // if nothing is listed, return an empty list
     if (isEmpty(namePattern) || "${namePattern}".equals(namePattern))
@@ -27,10 +29,9 @@ public class LineSplitter
     // reject wrong parenthesis types
     if (containsAny(namePattern, "{}[]"))
     {
-      // todo move away from Ant exceptions
       // First, validate that the line starts with the word "users"
-      BuildException buildException = new BuildException("Name pattern " + namePattern
-                                                           + " was not in the expected pattern of 'name1(alias1,alias2...);name2(alias1...);name3...");
+      BadParsingException buildException = new BadParsingException("Name pattern " + namePattern + " was not in the expected pattern of "
+                                                                     + EXPECTED_FORMAT);
 
       throw buildException;
     }

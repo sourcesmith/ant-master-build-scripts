@@ -1,17 +1,17 @@
 package com.nurflugel.buildtasks.todo;
 
+import com.nurflugel.buildtasks.todo.exceptions.BadParsingException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import static com.nurflugel.buildtasks.todo.AliasParser.getAliases;
 import static com.nurflugel.buildtasks.todo.LineSplitter.splitLine;
 import static org.apache.commons.io.FileUtils.readLines;
 import static org.apache.commons.io.FileUtils.writeLines;
 import static org.apache.commons.lang.StringUtils.*;
 
-/** Created with IntelliJ IDEA. User: douglas_bullard Date: 7/7/12 Time: 22:48 To change this template use File | Settings | File Templates. */
+/** Core task for Ant, Gradle, and command line classes. */
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class FindTodosCoreTask
 {
@@ -60,7 +60,7 @@ public class FindTodosCoreTask
   }
 
   // -------------------------- OTHER METHODS --------------------------
-  void findTodos() throws IOException
+  public void findTodos() throws IOException, BadParsingException
   {
     List<User> users = getUsers();
 
@@ -247,25 +247,17 @@ public class FindTodosCoreTask
     return new ArrayList<TodoItem>();
   }
 
-  public void setSearchPhrase(String text)
+  public void setSearchPhrase(String text) throws BadParsingException
   {
     String[]           names   = splitLine(text);
     List<SearchPhrase> phrases = new ArrayList<SearchPhrase>();
 
     for (String name : names)
     {
-      try
-      {
-        List<String> aliases = getAliases(name);
-        SearchPhrase phrase  = new SearchPhrase(aliases);
+      List<String> aliases = getAliases(name);
+      SearchPhrase phrase  = new SearchPhrase(aliases);
 
-        phrases.add(phrase);
-      }
-      catch (BadParsingException e)
-      {
-        e.printStackTrace();
-      }
-
+      phrases.add(phrase);
       searchPhrases = phrases;
     }
   }
@@ -276,7 +268,7 @@ public class FindTodosCoreTask
     return searchPhrases;
   }
 
-  public List<User> getUsers()
+  public List<User> getUsers() throws BadParsingException
   {
     if (users.isEmpty())
     {
@@ -286,7 +278,7 @@ public class FindTodosCoreTask
     return users;
   }
 
-  public List<User> findUsers()
+  public List<User> findUsers() throws BadParsingException
   {
     String[]   names = splitLine(namePattern);
     List<User> users = new ArrayList<User>();

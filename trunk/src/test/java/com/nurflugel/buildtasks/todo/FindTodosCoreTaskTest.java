@@ -1,5 +1,6 @@
 package com.nurflugel.buildtasks.todo;
 
+import com.nurflugel.buildtasks.todo.exceptions.BadParsingException;
 import org.testng.annotations.Test;
 import java.io.File;
 import java.io.IOException;
@@ -111,7 +112,7 @@ public class FindTodosCoreTaskTest
   }
 
   @Test
-  public void testFileOneUserOneComment() throws IOException
+  public void testFileOneUserOneComment() throws IOException, BadParsingException
   {
     FindTodosCoreTask task = new FindTodosCoreTask();
     File              file = new File(getTestFilePath("dir/Dummy.java"));
@@ -130,7 +131,7 @@ public class FindTodosCoreTaskTest
   }
 
   @Test
-  public void testSmallFileOneUserManyComments() throws IOException
+  public void testSmallFileOneUserManyComments() throws IOException, BadParsingException
   {
     FindTodosCoreTask task = new FindTodosCoreTask();
     File              file = new File(getTestFilePath("dir/otherDir/SmallComments.java"));
@@ -146,7 +147,7 @@ public class FindTodosCoreTaskTest
   }
 
   @Test
-  public void testFileOneUserManyComments() throws IOException
+  public void testFileOneUserManyComments() throws IOException, BadParsingException
   {
     FindTodosCoreTask task = new FindTodosCoreTask();
     File              file = new File(getTestFilePath("dir/otherDir/Comments.java"));
@@ -164,7 +165,7 @@ public class FindTodosCoreTaskTest
   }
 
   @Test
-  public void testDirsManyCommentsManyUsers() throws IOException
+  public void testDirsManyCommentsManyUsers() throws IOException, BadParsingException
   {
     FindTodosCoreTask task = new FindTodosCoreTask();
 
@@ -179,7 +180,7 @@ public class FindTodosCoreTaskTest
   }
 
   @Test
-  public void testTodos() throws IOException
+  public void testTodos() throws IOException, BadParsingException
   {
     FindTodosCoreTask task = new FindTodosCoreTask();
 
@@ -198,7 +199,7 @@ public class FindTodosCoreTaskTest
   }
 
   @Test
-  public void testNoUserFound() throws IOException
+  public void testNoUserFound() throws IOException, BadParsingException
   {
     FindTodosCoreTask task = new FindTodosCoreTask();
 
@@ -213,7 +214,7 @@ public class FindTodosCoreTaskTest
   }
 
   @Test
-  public void testCodeReviews() throws IOException
+  public void testCodeReviews() throws IOException, BadParsingException
   {
     FindTodosCoreTask task = new FindTodosCoreTask();
 
@@ -228,7 +229,7 @@ public class FindTodosCoreTaskTest
   }
 
   @Test
-  public void testTeamCityOutput() throws IOException
+  public void testTeamCityOutput() throws IOException, BadParsingException
   {
     FindTodosCoreTask task = new FindTodosCoreTask();
 

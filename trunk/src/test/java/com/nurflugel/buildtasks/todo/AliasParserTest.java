@@ -1,12 +1,12 @@
 package com.nurflugel.buildtasks.todo;
 
+import com.nurflugel.buildtasks.todo.exceptions.BadParsingException;
 import org.testng.annotations.Test;
 import java.util.List;
 import static com.nurflugel.buildtasks.todo.AliasParser.getAliases;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-/** Created with IntelliJ IDEA. User: dbulla Date: 7/5/12 Time: 11:08 AM To change this template use File | Settings | File Templates. */
 public class AliasParserTest
 {
   @Test

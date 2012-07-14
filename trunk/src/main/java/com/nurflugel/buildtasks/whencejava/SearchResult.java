@@ -1,5 +1,6 @@
 package com.nurflugel.buildtasks.whencejava;
 
+/** Representation of a found result. */
 public class SearchResult
 {
   private String filePath;

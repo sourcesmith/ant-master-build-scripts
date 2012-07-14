@@ -1,12 +1,14 @@
 package com.nurflugel.buildtasks;
 
+import com.nurflugel.buildtasks.ant.ValidatePropertiesTask;
 import org.apache.tools.ant.BuildException;
 import org.testng.annotations.Test;
 import java.util.HashSet;
 import java.util.Set;
+import static com.nurflugel.buildtasks.ant.ValidatePropertiesTask.parseLineForDefinitions;
+import static com.nurflugel.buildtasks.ant.ValidatePropertiesTask.parseLineForProps;
 import static org.testng.Assert.assertTrue;
 
-/** Created with IntelliJ IDEA. User: douglas_bullard Date: 6/30/12 Time: 14:55 To change this template use File | Settings | File Templates. */
 @Test(groups = "validateProperties")
 public class ValidatePropertiesTaskTest
 {
@@ -24,7 +26,7 @@ public class ValidatePropertiesTaskTest
   {
     Set<String> props = new HashSet<String>();
 
-    ValidatePropertiesTask.parseLineForProps(props, "dibble dabble ${tribble}");
+    parseLineForProps(props, "dibble dabble ${tribble}");
     assertTrue(props.contains("tribble"));
   }
 
@@ -33,7 +35,7 @@ public class ValidatePropertiesTaskTest
   {
     Set<String> props = new HashSet<String>();
 
-    ValidatePropertiesTask.parseLineForProps(props, "dibble dabble ${tribble} ${travel} dididlksjlksjls ${me}");
+    parseLineForProps(props, "dibble dabble ${tribble} ${travel} dididlksjlksjls ${me}");
     assertTrue(props.contains("tribble"));
     assertTrue(props.contains("travel"));
     assertTrue(props.contains("me"));
@@ -47,7 +49,7 @@ public class ValidatePropertiesTaskTest
 
     for (String line : lines)
     {
-      ValidatePropertiesTask.parseLineForDefinations(props, line);
+      parseLineForDefinitions(props, line);
     }
 
     assertTrue(props.contains("dibble"));
