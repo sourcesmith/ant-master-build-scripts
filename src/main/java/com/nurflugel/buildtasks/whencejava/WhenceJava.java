@@ -279,7 +279,7 @@ public class WhenceJava
       String  nextFullClassName = zipEntries.nextElement().toString();
       boolean doDisplay         = shouldDisplay(nextFullClassName, className, false);
 
-      if (doDisplay)  // todo - here is the problem - this only allows one instance of the class per file...
+      if (doDisplay)
       {
         results.add(new SearchResult(classpathElement.getAbsolutePath(), nextFullClassName));
       }

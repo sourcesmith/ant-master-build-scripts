@@ -1,4 +1,4 @@
-package com.nurflugel.buildtasks;
+package com.nurflugel.buildtasks.ant;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
@@ -97,11 +97,11 @@ public class ValidatePropertiesTask extends Task
     for (String line : lines)
     {
       parseLineForProps(properties, line);
-      parseLineForDefinations(allDefinedProperties, line);
+      parseLineForDefinitions(allDefinedProperties, line);
     }
   }
 
-  static void parseLineForProps(Set<String> properties, String line)
+  public static void parseLineForProps(Set<String> properties, String line)
   {
     String line1 = line.trim();
 
@@ -121,7 +121,7 @@ public class ValidatePropertiesTask extends Task
   }
 
   /** Go through any custom ways of setting properties outside of property files. */
-  static void parseLineForDefinations(Set<String> definedProperties, String line)
+  public static void parseLineForDefinitions(Set<String> definedProperties, String line)
   {
     String[] customDefs = { "<available property=\"", "<setPropertyFromEnvstore propertyName=\"" };
 
