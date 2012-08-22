@@ -89,6 +89,10 @@ test {
   options.suites("src/test/testng-config/testng.xml")
     File cssFile = new File("build/hudsonesque.css");
     if(!cssFile.exists()){
+        File buildDir = new File("build")
+        if(!buildDir.exists()){
+            buildDir.mkdir()
+        }
         println "Getting hudsonesque.css file from the web"
         def address="http://ant-master-build-scripts.googlecode.com/svn/trunk/master-gradle/hudsonesque.css"
         println ">>>>>>a"
