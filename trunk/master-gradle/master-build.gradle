@@ -87,9 +87,21 @@ test {
   useTestNG()
   testLogging.showStandardStreams = true
   options.suites("src/test/testng-config/testng.xml")
+    File cssFile = new File("build/hudsonesque.css");
+    if(!cssFile.exists()){
+        println "Getting hudsonesque.css file from the web"
+        def address="http://ant-master-build-scripts.googlecode.com/svn/trunk/master-gradle/hudsonesque.css"
+        def file = new FileOutputStream("build/"+address.tokenize("/")[-1])
+        def out = new BufferedOutputStream(file)
+        out << new URL(address).openStream()
+        out.close()
+    }
 //    todo - if we cant connect to the internet, bypass the next line
 //  systemProperties "org.uncommons.reportng.stylesheet": "${projectDir}/master-gradle/hudsonesque.css"
-  systemProperties "org.uncommons.reportng.stylesheet": "http://ant-master-build-scripts.googlecode.com/svn/trunk/master-gradle/hudsonesque.css"
+    if(cssFile.exists()){
+        systemProperties "org.uncommons.reportng.stylesheet": "${projectDir}/build/hudsonesque.css"
+//  systemProperties "org.uncommons.reportng.stylesheet": "http://ant-master-build-scripts.googlecode.com/svn/trunk/master-gradle/hudsonesque.css"
+    }
   systemProperties "running.in.gradle": "yes"
   workingDir = 'build/'
   options {
