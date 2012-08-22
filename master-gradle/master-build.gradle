@@ -91,9 +91,13 @@ test {
     if(!cssFile.exists()){
         println "Getting hudsonesque.css file from the web"
         def address="http://ant-master-build-scripts.googlecode.com/svn/trunk/master-gradle/hudsonesque.css"
+        println ">>>>>>a"
         def file = new FileOutputStream("build/"+address.tokenize("/")[-1])
+        println ">>>>>>b"
         def out = new BufferedOutputStream(file)
+        println ">>>>>>c"
         out << new URL(address).openStream()
+        println ">>>>>>d"
         out.close()
     }
 //    todo - if we cant connect to the internet, bypass the next line
