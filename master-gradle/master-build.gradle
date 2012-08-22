@@ -87,7 +87,9 @@ test {
   useTestNG()
   testLogging.showStandardStreams = true
   options.suites("src/test/testng-config/testng.xml")
-  systemProperties "org.uncommons.reportng.stylesheet": "${projectDir}/master-gradle/hudsonesque.css"
+//    todo - if we cant connect to the internet, bypass the next line
+//  systemProperties "org.uncommons.reportng.stylesheet": "${projectDir}/master-gradle/hudsonesque.css"
+  systemProperties "org.uncommons.reportng.stylesheet": "http://ant-master-build-scripts.googlecode.com/svn/trunk/master-gradle/hudsonesque.css"
   systemProperties "running.in.gradle": "yes"
   workingDir = 'build/'
   options {
