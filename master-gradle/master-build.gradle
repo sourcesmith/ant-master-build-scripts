@@ -248,5 +248,5 @@ private void updateVersion(String versionUpdateType)
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '1.0'
+  gradleVersion = '1.1'
 }
