@@ -21,16 +21,16 @@ artifacts {
     archives myJar
 }
 
-buildscript {
+//buildscript {
 //    repositories {
 //        maven {
-//            url uri('../repo')
+//            url uri('build/libs')
 //        }
 //    }
 //    dependencies {
 //        classpath group: 'org.groovy', name: 'customPlugin', version: '1.0.1-SNAPSHOT'
 //    }
-}
+//}
 
 //repositories {
 //    flatDir {
