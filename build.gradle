@@ -1,4 +1,7 @@
 apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: GreetingPlugin
+
 
 apply from: 'dependencies.gradle'
 apply from: 'master-gradle/master-build.gradle'
@@ -16,6 +19,17 @@ task myJar(type: Jar)
 
 artifacts {
     archives myJar
+}
+
+buildscript {
+//    repositories {
+//        maven {
+//            url uri('../repo')
+//        }
+//    }
+//    dependencies {
+//        classpath group: 'org.groovy', name: 'customPlugin', version: '1.0.1-SNAPSHOT'
+//    }
 }
 
 //repositories {
@@ -46,3 +60,13 @@ uploadArchives {
 //  WhenceJavaText text=new WhenceJavaText();
 //  text.execute();
 //}
+
+class GreetingPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        project.task('hello') << {
+            println "Hello from the GreetingPlugin"
+        }
+    }
+}
+
+
