@@ -49,7 +49,7 @@ uploadArchives {
         ivy {
             credentials {
                 username "dbullard"
-                password "1Lovekayna"
+                password "1*"
             }
             url "http://www.nurflugel.com/Home/repository"
         }
