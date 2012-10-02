@@ -1,7 +1,7 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
-apply from: 'http://ant-master-build-scripts.googlecode.com/svn/trunk/master-gradle/master-build.gradle'
-//apply from: 'master-gradle/master-build.gradle'
+//apply from: 'http://ant-master-build-scripts.googlecode.com/svn/trunk/master-gradle/master-build.gradle'
+apply from: 'master-gradle/master-build.gradle'
 
 configurations {
   presigned
@@ -39,7 +39,7 @@ task copyUnfilteredResources(type: Copy) {
   into('webstart')
 }
 
-  // filter the webstart files, inserting the proper library versions and the subversion branch
+// filter the webstart files, inserting the proper library versions and the subversion branch
 task copyFilteredResources(type: Copy) {
   from('src/app/web'){
     exclude '**/*.png'
