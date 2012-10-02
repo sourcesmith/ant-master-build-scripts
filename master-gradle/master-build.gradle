@@ -17,7 +17,7 @@ configurations {
   test
   reporting
   javac2
-  codeCoverage
+//  codeCoverage
   versionUpdate
 }
 
@@ -74,13 +74,13 @@ dependencies {
   testCompile  ('velocity:velocity:'+              libraryVersions.velocity){transtive=true}
   testCompile  ('org.uncommons:reportng:'+         libraryVersions.reportng){transitive=false}
 
-  codeCoverage 'org.jacoco:org.jacoco.build:'+     libraryVersions.jacoco
-  codeCoverage 'org.jacoco:org.jacoco.ant:'+       libraryVersions.jacoco
+//  codeCoverage 'org.jacoco:org.jacoco.build:'+     libraryVersions.jacoco
+//  codeCoverage 'org.jacoco:org.jacoco.ant:'+       libraryVersions.jacoco
 //  runtime      'org.jacoco:org.jacoco.agent:'+     libraryVersions.jacoco
-  codeCoverage 'org.jacoco:org.jacoco.agent:'+     libraryVersions.jacoco
-  codeCoverage 'org.jacoco:org.jacoco.report:'+    libraryVersions.jacoco
-  codeCoverage 'org.jacoco:org.jacoco.core:'+      libraryVersions.jacoco
-  codeCoverage 'org.jacoco:org.jacoco.agent:'+     libraryVersions.jacoco
+//  codeCoverage 'org.jacoco:org.jacoco.agent:'+     libraryVersions.jacoco
+//  codeCoverage 'org.jacoco:org.jacoco.report:'+    libraryVersions.jacoco
+//  codeCoverage 'org.jacoco:org.jacoco.core:'+      libraryVersions.jacoco
+//  codeCoverage 'org.jacoco:org.jacoco.agent:'+     libraryVersions.jacoco
 }
 
 test {
@@ -251,6 +251,7 @@ task whencejava(description: "Call this to find a class hiding in jar in a lib. 
 
 task versionMajor(description: "Increment the version number by a major version (i.e., from 1.0 to 2.0)")<<{ updateVersion("Major") }
 task versionMinor(description: "Increment the version number by a major version (i.e., from v. 2.0.0 to v. 2.0.1)")<<{ updateVersion("Minor") }
+//task versionMinor(dependsOn: versionMajor, description: "Increment the version number by a major version (i.e., from v. 2.0.0 to v. 2.0.1)")<<{ updateVersion("Minor") }
 task versionPoint(description: "Increment the version number by a major version (i.e., from v. 2.0.1 to v. 2.1.0)")<<{ updateVersion("Point") }
 
 private void updateVersion(String versionUpdateType)

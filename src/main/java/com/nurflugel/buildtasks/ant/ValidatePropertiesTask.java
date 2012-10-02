@@ -19,21 +19,41 @@ public class ValidatePropertiesTask extends Task
   private Set<String>         buildFiles     = new HashSet<String>();
   private String              errorText;
 
+  /** parse the given line for any properties defined - if found, add them to the set. */
+  private static void parseLineForDefinitions(Set<String> definedProperties, String theLine, String def)
+  {
+    String line = theLine;
+
+    while (line.contains(def))
+    {
+      line = substringAfter(line, def);
+
+      String property = substringBefore(line, "\"");
+
+      definedProperties.add(property);
+      line = substringAfter(line, "\"");
+    }
+  }
+
   // -------------------------- OTHER METHODS --------------------------
   @Override
+  /** This just calls doWork so we can unit test it nicely without having to run in Ant
+   *
+   */
   public void execute() throws BuildException
   {
     buildFiles = getBuildFiles();
     doWork();
   }
 
+  /** Get the list of build files that should have been passed in. */
   private Set<String> getBuildFiles()
   {
-    Map         projectProperties = getProjectProperties();
-    Set         set               = projectProperties.keySet();
-    Set<String> buildFileNames    = new HashSet<String>();
+    Map         projectProperties   = getProjectProperties();
+    Set         projectPropertyKeys = projectProperties.keySet();
+    Set<String> buildFileNames      = new HashSet<String>();
 
-    for (Object o : set)
+    for (Object o : projectPropertyKeys)
     {
       String propertyName = (String) o;
 
@@ -46,14 +66,21 @@ public class ValidatePropertiesTask extends Task
     return buildFileNames;
   }
 
-  private Map getProjectProperties()
+  /** Returns a safe map (if the project is null, an empty one). */
+  private Map<String, String> getProjectProperties()
   {
-    Project theProject = getProject();
+    Map<String, String> results    = new HashMap<String, String>();
+    Project             theProject = getProject();
 
-    return (theProject != null) ? theProject.getProperties()
-                                : new Hashtable();
+    if (theProject != null)
+    {
+      results.putAll(theProject.getProperties());
+    }
+
+    return results;
   }
 
+  /** Do the actual work - make sure the properties are all defined. */
   public void doWork()
   {
     Set<String> properties           = new HashSet<String>();
@@ -92,7 +119,7 @@ public class ValidatePropertiesTask extends Task
     return notMissingProperties;
   }
 
-  private void processBuildFileLines(Set<String> properties, Set<String> allDefinedProperties, List<String> lines)
+  private static void processBuildFileLines(Set<String> properties, Set<String> allDefinedProperties, List<String> lines)
   {
     for (String line : lines)
     {
@@ -101,22 +128,23 @@ public class ValidatePropertiesTask extends Task
     }
   }
 
+  /** parse the given line for any properties used - if found, add them to the set. */
   public static void parseLineForProps(Set<String> properties, String line)
   {
-    String line1 = line.trim();
+    String trimmedLine = line.trim();
 
-    while (line1.contains(OPEN_PROPERTY) && !line1.startsWith("<!"))  // there's at least one property in here...
+    while (trimmedLine.contains(OPEN_PROPERTY) && !trimmedLine.startsWith("<!"))  // there's at least one property in here...
     {
-      String property = substringAfter(line1, OPEN_PROPERTY);
+      String property = substringAfter(trimmedLine, OPEN_PROPERTY);
 
       property = substringBefore(property, CLOSE_PROPERTY);
 
-      if (!property.contains("@{"))                                   // don't do property names with attributes (yet)
+      if (!property.contains("@{"))                                               // don't do property names with attributes (yet)
       {
         properties.add(property);
       }
 
-      line1 = substringAfter(line1, CLOSE_PROPERTY);
+      trimmedLine = substringAfter(trimmedLine, CLOSE_PROPERTY);
     }
   }
 
@@ -131,25 +159,10 @@ public class ValidatePropertiesTask extends Task
     }
   }
 
-  private static void parseLineForDefinitions(Set<String> definedProperties, String theLine, String def)
-  {
-    String line = theLine;
-
-    while (line.contains(def))
-    {
-      line = substringAfter(line, def);
-
-      String property = substringBefore(line, "\"");
-
-      definedProperties.add(property);
-      line = substringAfter(line, "\"");
-    }
-  }
-
   void validateProject(Set<String> properties, Set<String> allDefinedProperties, Set<String> notMissingProperties)
   {
-    Map projectProperties = getProjectProperties();
-    Set keys              = projectProperties.keySet();
+    Map<String, String> projectProperties = getProjectProperties();
+    Set<String>         keys              = projectProperties.keySet();
 
     allDefinedProperties.addAll(keys);
 
@@ -176,6 +189,12 @@ public class ValidatePropertiesTask extends Task
   public void setBuildFile(String buildFileName)
   {
     buildFiles.add(buildFileName);
+  }
+
+  // ------------------------ CANONICAL METHODS ------------------------
+  public ValidatePropertiesTask clone() throws CloneNotSupportedException
+  {
+    return (ValidatePropertiesTask) super.clone();
   }
 
   // --------------------- GETTER / SETTER METHODS ---------------------
