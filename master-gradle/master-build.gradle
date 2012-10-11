@@ -62,6 +62,9 @@ dependencies {
     version_tool:   '1.1.4_fixed'
   ]
 
+  //todo need to define this in settings so the user can define - get off of java home if defined...
+  def javafxHomeLib="/Library/Java/JavaVirtualMachines/jdk1.7.0_10.jdk/Contents/Home/jre/lib/"
+  
   javac2 'com.intellij:javac2:'+                   libraryVersions.intellij,
          'com.intellij:annotations:'+              libraryVersions.intellij,
          'asm:asm-commons:'+                       libraryVersions.javac2asm,
@@ -167,6 +170,20 @@ task compileJava (overwrite: true) << {
   compileJavac2(mainSrcDir, classpath, destDir, debug, debugLevel, javaDeprecation, includeAntRuntime, optimize, javaSoureCompatibility, javaTargetCompatibility)
 }
 
+// have to split the copying up as filtering messes up images
+task copyJavaFxResources(type: Copy) {
+  from('src/main/java'){
+    include '**/*.png'
+    include '**/*.jpg'
+    include '**/*.css'
+    include '**/*.fxml'
+    include '**/*.gif'
+  }
+  into("${projectDir}/build/classes/main")
+}
+
+jar.dependsOn copyJavaFxResources
+
 private void compileJavac2(mainSrcDir, classpath, destDir, debug, debugLevel, deprecation, includeAntRuntime, optimize, sourceCompatibility, targetCompatibility)
 {
   ant {
@@ -267,5 +284,5 @@ private void updateVersion(String versionUpdateType)
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '1.1'
+  gradleVersion = '1.2'
 }
