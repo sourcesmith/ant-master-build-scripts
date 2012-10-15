@@ -183,6 +183,7 @@ task copyJavaFxResources(type: Copy) {
 }
 
 jar.dependsOn copyJavaFxResources
+run.dependsOn copyJavaFxResources
 
 private void compileJavac2(mainSrcDir, classpath, destDir, debug, debugLevel, deprecation, includeAntRuntime, optimize, sourceCompatibility, targetCompatibility)
 {
