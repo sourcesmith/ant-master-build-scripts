@@ -1,9 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'groovy'
-apply plugin: GreetingPlugin
 
 
-apply from: 'dependencies.gradle'
 apply from: 'master-gradle/master-build.gradle'
 
 
@@ -21,26 +19,6 @@ artifacts {
     archives myJar
 }
 
-//buildscript {
-//    repositories {
-//        maven {
-//            url uri('build/libs')
-//        }
-//    }
-//    dependencies {
-//        classpath group: 'org.groovy', name: 'customPlugin', version: '1.0.1-SNAPSHOT'
-//    }
-//}
-
-//repositories {
-//    flatDir {
-//        name "fileRepo"
-//        dirs "repo"
-//        artifactPattern "http://www.nurflugel.com/Home/repository/[organisation]/[module]/[revision]/[artifact]-[revision].[type]"
-//        ivyPattern      "http://www.nurflugel.com/Home/repository/[organisation]/[module]/[revision]/[artifact]-[revision].ivy.xml"
-//        dirs "/Users/douglas_bullard/Documents/Nurflugel.com website as a WAR/html/Home/repository"
-//    }
-//}
 
 uploadArchives {
     repositories {
@@ -56,30 +34,5 @@ uploadArchives {
     }
 }
 
-//task dibble() <<{
-//  WhenceJavaText text=new WhenceJavaText();
-//  text.execute();
-//}
-
-greeting {
-    message = 'Hi'
-    greeter = 'Gradle'
-}
-
-class GreetingPlugin implements Plugin<Project> {
-    void apply(Project project) {
-        // Add the 'greeting' extension object
-        project.extensions.create("greeting", GreetingPluginExtension)
-        // Add a task that uses the configuration
-        project.task('hello') << {
-            println "${project.greeting.message} from ${project.greeting.greeter}"
-        }
-    }
-}
-
-class GreetingPluginExtension {
-    String message = 'Hello from GreetingPlugin'
-    String greeter
-}
 
 
