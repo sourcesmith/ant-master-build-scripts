@@ -19,7 +19,16 @@ configurations {
   javac2
 //  codeCoverage
   versionUpdate
+//  source
+  bundleapp
+  
 }
+final path = System.properties.find { it.key == "java.home" }.toString()
+path=path.split("=")[1]
+def javaHomeDir=new File(path).parent
+
+apply from: 'gradle/dependencies.gradle'
+
 
 println """\
 
@@ -27,6 +36,7 @@ println """\
 Welcome to Gradle!  This is version: $gradle.gradleVersion
               Gradle home is set to: $gradle.gradleHomeDir
     Gradle user directory is set to: $gradle.gradleUserHomeDir
+                Java home is set to: $javaHomeDir
 
                      Base directory: $projectDir
 
@@ -42,34 +52,44 @@ repositories {
             artifactPattern "http://www.nurflugel.com/Home/repository/[organisation]/[module]/[revision]/[artifact]-[revision].[type]"
             ivyPattern      "http://www.nurflugel.com/Home/repository/[organisation]/[module]/[revision]/[artifact]-[revision].ivy.xml"
   }
-//    ivyF {
-//            artifactPattern "/Users/douglas_bullard/Documents/Nurflugel.com website as a WAR/html/Home/repository/[organisation]/[module]/[revision]/[artifact]-[revision].[type]"
-//            ivyPattern  "/Users/douglas_bullard/Documents/Nurflugel.com website as a WAR/html/Home/repository/[organisation]/[module]/[revision]/[artifact]-[revision].ivy.xml"
-//          }
-//    }
+  
+}
+
+
+private boolean useJavaC2()
+{
+  final property = System.getProperty("useJavac2")
+  if(property == null){
+    return false
+  }
+  if(property.toBoolean()){
+    return true
+  } 
+  return false
 }
 
 dependencies {
   ext.libraryVersions += [
-    forms_rt:       '11.0.3',
     guice:          '3.0',
-    intellij:       '11.0.3',
     jacoco:         '0.5.7.201204190339',
-    javac2asm:      '3.3.1',
-    jdom:           '1.0',
     reportng:       '1.1.2',
     velocity:       '1.4',
     version_tool:   '1.1.4_fixed'
   ]
-
-  //todo need to define this in settings so the user can define - get off of java home if defined...
-  def javafxHomeLib="/Library/Java/JavaVirtualMachines/jdk1.7.0_10.jdk/Contents/Home/jre/lib/"
-  
+if(useJavaC2()){
+  ext.libraryVersions += [
+    forms_rt:       '11.0.3',
+    intellij:       '11.0.3',
+    javac2asm:      '3.3.1',
+    jdom:           '1.0',
+  ]
   javac2 'com.intellij:javac2:'+                   libraryVersions.intellij,
          'com.intellij:annotations:'+              libraryVersions.intellij,
          'asm:asm-commons:'+                       libraryVersions.javac2asm,
          'asm:asm-parent:'+                        libraryVersions.javac2asm,
          'org.jdom:jdom:'+                         libraryVersions.jdom
+}
+
 
   versionUpdate 'com.ryangrier.ant:version_tool:'+ libraryVersions.version_tool
 
@@ -77,44 +97,17 @@ dependencies {
   testCompile  ('velocity:velocity:'+              libraryVersions.velocity){transtive=true}
   testCompile  ('org.uncommons:reportng:'+         libraryVersions.reportng){transitive=false}
 
-//  codeCoverage 'org.jacoco:org.jacoco.build:'+     libraryVersions.jacoco
-//  codeCoverage 'org.jacoco:org.jacoco.ant:'+       libraryVersions.jacoco
-//  runtime      'org.jacoco:org.jacoco.agent:'+     libraryVersions.jacoco
-//  codeCoverage 'org.jacoco:org.jacoco.agent:'+     libraryVersions.jacoco
-//  codeCoverage 'org.jacoco:org.jacoco.report:'+    libraryVersions.jacoco
-//  codeCoverage 'org.jacoco:org.jacoco.core:'+      libraryVersions.jacoco
-//  codeCoverage 'org.jacoco:org.jacoco.agent:'+     libraryVersions.jacoco
+  bundleapp files("gradle/lib/appbundler-1.0.jar")
+
+
 }
 
 test {
   useTestNG()
   testLogging.showStandardStreams = true
   options.suites("src/test/testng-config/testng.xml")
-    File cssFile = new File("build/hudsonesque.css");
-    if(!cssFile.exists()){
-        File buildDir = new File("build")
-        if(!buildDir.exists()){
-            buildDir.mkdir()
-        }
-        println "Getting hudsonesque.css file from the web"
-        def address="http://ant-master-build-scripts.googlecode.com/svn/trunk/master-gradle/hudsonesque.css"
-        def file = new FileOutputStream("build/"+address.tokenize("/")[-1])
-        def out = new BufferedOutputStream(file)
-        out << new URL(address).openStream()
-        out.close()
-    }
-//    todo - if we cant connect to the internet, bypass the next line
-//  systemProperties "org.uncommons.reportng.stylesheet": "${projectDir}/master-gradle/hudsonesque.css"
-    if(cssFile.exists()){
-        systemProperties "org.uncommons.reportng.stylesheet": "${projectDir}/build/hudsonesque.css"
-//  systemProperties "org.uncommons.reportng.stylesheet": "http://ant-master-build-scripts.googlecode.com/svn/trunk/master-gradle/hudsonesque.css"
-    }
   systemProperties "running.in.gradle": "yes"
   workingDir = 'build/'
-  options {
-    listeners << 'org.uncommons.reportng.HTMLReporter'
-    listeners << 'org.uncommons.reportng.JUnitXMLReporter'
-  }
 }
 
 //todo get version from specified file
@@ -147,7 +140,8 @@ javadoc {
 //    into('build/dist')
 //}
 
-
+if(useJavaC2()){
+  println "+++> overriding javac2"
 // we overwrite compileJava because the IDEA javac2 compiler is needed for GUI forms.
 task compileJava (overwrite: true) << {
 
@@ -169,7 +163,7 @@ task compileJava (overwrite: true) << {
 
   compileJavac2(mainSrcDir, classpath, destDir, debug, debugLevel, javaDeprecation, includeAntRuntime, optimize, javaSoureCompatibility, javaTargetCompatibility)
 }
-
+}
 // have to split the copying up as filtering messes up images
 task copyJavaFxResources(type: Copy) {
   from('src/main/java'){
@@ -285,5 +279,45 @@ private void updateVersion(String versionUpdateType)
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '1.2'
+  gradleVersion = '1.7'
+}
+
+
+
+// Mac Release - from https://github.com/anathema/anathema/blob/master/build.gradle
+task compileLauncherMac(dependsOn: installApp) << {
+    ant.taskdef(
+            name: "bundleapp",
+            classname: "com.oracle.appbundler.AppBundlerTask",
+            classpath: configurations.bundleapp.asPath
+    )
+    mkdir("${buildDir}/dist")
+    ant.bundleapp(
+            outputdirectory: "${buildDir}/dist",
+            name: "Gradle Script Visualizer",
+            displayname: "Gradle Script Visualizer",
+            identifier: "com.nurflugel.gradlescriptvisualizer",
+            icon: "src/main/resources/gradleLogo_big.icns", //opt
+//            shortversion: "${versionString}", //opt
+//            signature: "????", //opt
+            //copyright: blah , //opt
+            applicationCategory: "public.app-category.utilities", //opt
+            mainclassname: "com.nurflugel.gradle.ui.Main"
+    ) {
+
+//        runtime(dir: "build/jre/mac64/jre${jreVersion}/Contents/Home") //opt - one way to get around who's got what - put the JRE into source control
+//        runtime(dir: "$java_home") //opt
+
+        classpath(dir: "${buildDir}/install/GradleScriptVisualizer/lib/")
+        classpath(file: "$javaHomeDir/jre/lib/jfxrt.jar")
+//        classpath(file: "src/main/resources/FobIcon.png")
+      
+      
+//        classpath(dir: "${buildDir}/dependencies/")
+//        classpath(dir: "${buildDir}/plugins/")
+
+//        option(value: "-splash:\$APP_ROOT/Contents/Java/FobIcon.png")// shows image, but app hangs with no errors
+        option(value: "-Dapple.laf-useScreenMenuBar=true")
+//        option(value: "-Ddefaultrepository=%USER_HOME%/Library/Application Support/Anathema")
+    }
 }

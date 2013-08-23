@@ -9,8 +9,11 @@ configurations {
 }
 
 // Note that we have to tell Gradle what's expected to run before this - Gradle doesn't honor dependency order in the tasks as specified below
-task publishWebstart(dependsOn: [ 'copyResources', 'copyHelp', 'signJars'], description: 'Create the WebStart distributable.')
+task publishWebstart(dependsOn: [ 'copyResources', 'copyHelp', 'signJars',distZip,installApp], description: 'Create the WebStart distributable. If the property just.sign.main.jar is set to anything, only the main jar is signed')
 
+distZip{
+  destinationDir=new File("webstart/distributions")
+}
 
 task jarHelp(type: Jar, description: "Create the help.jar"){
   archiveName "help.jar"
@@ -60,12 +63,11 @@ task copyHelp(type: Copy) {
   into('webstart/html')
 }
 
-// if this is set to anything, we only sign the main application jar.  If not set, ALL jars are signed (slow!)
-final signMainJarPropertyName = 'just.sign.main.jar'
+
 
 task signJars(dependsOn: copyLibs) << {
   def jarsToSign
-  if(System.getProperty(signMainJarPropertyName)){
+  if(justSignMainJars()){
       jarsToSign=[file("webstart/lib/${rootProject.name}.jar"),file("webstart/lib/help.jar")]
   }else{
       jarsToSign = file("webstart/lib").listFiles()
@@ -83,6 +85,12 @@ task signJars(dependsOn: copyLibs) << {
         println 'Got an exception signing jar, but continuing: ' +e
     }
   }
+}
+
+// if this is set to anything, we only sign the main application jar.  If not set, ALL jars are signed (slow!)
+private boolean justSignMainJars()
+{
+ return (System.getProperty("just.sign.main.jar")!=null) 
 }
 
 

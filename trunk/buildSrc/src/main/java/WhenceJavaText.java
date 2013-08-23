@@ -1,16 +1,18 @@
-package com.nurflugel.buildtasks;
-
+// package com.nurflugel.buildtasks;
 // import org.apache.tools.ant.BuildException;
 import org.apache.commons.lang.StringUtils;
+
 import java.io.File;
 import java.io.IOException;
+
+import static java.lang.Math.max;
+
 import java.util.ArrayList;
+import static java.util.Arrays.asList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
-import static java.lang.Math.max;
-import static java.util.Arrays.asList;
 
 /**
  * Class to find which jars contain the class you're looking for. Run with no args to get usage.
