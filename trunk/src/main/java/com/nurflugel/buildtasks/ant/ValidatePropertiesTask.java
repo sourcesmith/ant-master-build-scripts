@@ -1,14 +1,21 @@
 package com.nurflugel.buildtasks.ant;
 
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.Task;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
 import static org.apache.commons.io.FileUtils.readLines;
 import static org.apache.commons.lang.StringUtils.substringAfter;
 import static org.apache.commons.lang.StringUtils.substringBefore;
+
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Task;
+
+import java.io.File;
+import java.io.IOException;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /** Goes through Ant files and looks for missing properties. todo - make it ignore comments */
 public class ValidatePropertiesTask extends Task
@@ -16,7 +23,7 @@ public class ValidatePropertiesTask extends Task
   private static final String OPEN_PROPERTY  = "${";
   private static final String CLOSE_PROPERTY = "}";
   private String              exceptions     = "";
-  private Set<String>         buildFiles     = new HashSet<String>();
+  private Set<String>         buildFiles     = new HashSet<>();
   private String              errorText;
 
   /** parse the given line for any properties defined - if found, add them to the set. */
@@ -51,7 +58,7 @@ public class ValidatePropertiesTask extends Task
   {
     Map         projectProperties   = getProjectProperties();
     Set         projectPropertyKeys = projectProperties.keySet();
-    Set<String> buildFileNames      = new HashSet<String>();
+    Set<String> buildFileNames      = new HashSet<>();
 
     for (Object o : projectPropertyKeys)
     {
@@ -69,12 +76,19 @@ public class ValidatePropertiesTask extends Task
   /** Returns a safe map (if the project is null, an empty one). */
   private Map<String, String> getProjectProperties()
   {
-    Map<String, String> results    = new HashMap<String, String>();
+    Map<String, String> results    = new HashMap<>();
     Project             theProject = getProject();
 
     if (theProject != null)
     {
-      results.putAll(theProject.getProperties());
+      Map properties = theProject.getProperties();
+
+      for (Object key : properties.keySet())
+      {
+        Object value = properties.get(key);
+
+        results.put((String) key, (String) value);
+      }
     }
 
     return results;
@@ -83,8 +97,8 @@ public class ValidatePropertiesTask extends Task
   /** Do the actual work - make sure the properties are all defined. */
   public void doWork()
   {
-    Set<String> properties           = new HashSet<String>();
-    Set<String> allDefinedProperties = new HashSet<String>();
+    Set<String> properties           = new HashSet<>();
+    Set<String> allDefinedProperties = new HashSet<>();
     Set<String> notMissingProperties = parseExceptions();
 
     try
@@ -108,7 +122,7 @@ public class ValidatePropertiesTask extends Task
 
   private Set<String> parseExceptions()
   {
-    Set<String> notMissingProperties = new HashSet<String>();
+    Set<String> notMissingProperties = new HashSet<>();
     String[]    strings              = exceptions.split(",");
 
     for (String text : strings)

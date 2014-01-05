@@ -1,15 +1,20 @@
 package com.nurflugel.buildtasks.todo;
 
-import com.nurflugel.buildtasks.todo.exceptions.BadParsingException;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import static com.nurflugel.buildtasks.todo.AliasParser.getAliases;
 import static com.nurflugel.buildtasks.todo.LineSplitter.splitLine;
+import com.nurflugel.buildtasks.todo.exceptions.BadParsingException;
+
 import static org.apache.commons.io.FileUtils.readLines;
 import static org.apache.commons.io.FileUtils.writeLines;
-import static org.apache.commons.lang.StringUtils.*;
+import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.apache.commons.lang.StringUtils.contains;
+import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang.StringUtils.replace;
+
+import java.io.File;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /** Core task for Ant, Gradle, and command line classes. */
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
@@ -44,16 +49,16 @@ public class FindTodosCoreTask
    * <p>Optional, if not specified, then no users will show in the graphs.</p>
    */
   private String     namePattern;
-  private List<User> users = new ArrayList<User>();
+  private List<User> users = new ArrayList<>();
 
   /** used to store output to TeamCity for unit testing, as scraping System.out is a pain. */
-  private List<String> outputLines = new ArrayList<String>();
+  private List<String> outputLines = new ArrayList<>();
 
   public FindTodosCoreTask()
   {
-    searchPhrases = new ArrayList<SearchPhrase>();
+    searchPhrases = new ArrayList<>();
 
-    List<String> dibble = new ArrayList<String>();
+    List<String> dibble = new ArrayList<>();
 
     dibble.add("todo");
     searchPhrases.add(new SearchPhrase(dibble));
@@ -140,7 +145,7 @@ public class FindTodosCoreTask
   /** Writes the output to a file for artifacts. */
   private void writeReportOutput(List<User> users) throws IOException
   {
-    List<String> lines = new ArrayList<String>();
+    List<String> lines = new ArrayList<>();
 
     lines.add("<html>");
     lines.add("<title>Todo Analysis</title>");
@@ -213,8 +218,7 @@ public class FindTodosCoreTask
         if (!user.equals(ALL))
         {
           if (!user.getTodos().isEmpty())
-          {
-            // log(tag + '_' + user.getName() + VALUE + user.getTodos().size() + END_TAG);
+          {  // log(tag + '_' + user.getName() + VALUE + user.getTodos().size() + END_TAG);
             line = tag + '_' + user.getName() + VALUE + user.getTodos().size() + END_TAG;
             System.out.println(line);
             outputLines.add(line);
@@ -244,13 +248,13 @@ public class FindTodosCoreTask
       return UNKNOWN.getTodos();
     }
 
-    return new ArrayList<TodoItem>();
+    return new ArrayList<>();
   }
 
   public void setSearchPhrase(String text) throws BadParsingException
   {
     String[]           names   = splitLine(text);
-    List<SearchPhrase> phrases = new ArrayList<SearchPhrase>();
+    List<SearchPhrase> phrases = new ArrayList<>();
 
     for (String name : names)
     {
@@ -281,7 +285,7 @@ public class FindTodosCoreTask
   public List<User> findUsers() throws BadParsingException
   {
     String[]   names = splitLine(namePattern);
-    List<User> users = new ArrayList<User>();
+    List<User> users = new ArrayList<>();
 
     for (String name : names)
     {
