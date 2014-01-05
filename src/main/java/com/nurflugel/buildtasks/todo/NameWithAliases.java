@@ -12,7 +12,7 @@ public class NameWithAliases
   protected String name;
 
   /** This can be anything the user is called by - in my case, doug, dbulla, dgb, douglas, etc. */
-  protected final Set<String> aliases = new HashSet<String>();
+  protected final Set<String> aliases = new HashSet<>();
 
   public NameWithAliases(List<String> names)
   {

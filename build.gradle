@@ -5,9 +5,9 @@ apply plugin: 'groovy'
 apply from: 'master-gradle/master-build.gradle'
 
 
-version = "1.0.1-SNAPSHOT"  //used to set Ivy version if we're going to publish
-sourceCompatibility = 1.6
-targetCompatibility = 1.6
+version = "1.0.2-SNAPSHOT"  //used to set Ivy version if we're going to publish
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
 versionClassName = 'com.nurflugel.buildtasks.WhenceJava'
 
 mainClassName = "com.nurflugel.buildtasks.WhenceJava"

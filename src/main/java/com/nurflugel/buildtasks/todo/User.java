@@ -1,15 +1,15 @@
 package com.nurflugel.buildtasks.todo;
 
 import java.util.ArrayList;
+import static java.util.Arrays.asList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import static java.util.Arrays.asList;
 
 /** This represents a user and all their aliases. */
 public class User extends NameWithAliases
 {
-  private final Set<TodoItem> todos = new LinkedHashSet<TodoItem>();
+  private final Set<TodoItem> todos = new LinkedHashSet<>();
 
   public User(String... names)
   {
@@ -33,7 +33,7 @@ public class User extends NameWithAliases
 
   public List<TodoItem> getTodos()
   {
-    return new ArrayList<TodoItem>(todos);
+    return new ArrayList<>(todos);
   }
 
   // ------------------------ CANONICAL METHODS ------------------------

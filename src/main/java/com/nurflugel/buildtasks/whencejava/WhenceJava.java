@@ -1,15 +1,20 @@
 package com.nurflugel.buildtasks.whencejava;
 
+import static org.apache.commons.lang.StringUtils.substringAfter;
+import static org.apache.commons.lang.StringUtils.substringAfterLast;
+import static org.apache.commons.lang.StringUtils.substringBefore;
+
 import java.io.File;
 import java.io.IOException;
+
+import static java.lang.Math.max;
+
 import java.util.ArrayList;
+import static java.util.Arrays.asList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
-import static java.lang.Math.max;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.*;
 
 /**
  * Class to find which jars contain the class you're looking for. Run with no args to get usage.
@@ -28,7 +33,6 @@ public class WhenceJava
   private boolean             wildcardEnd;
   private boolean             wildcardFront;
   private char                fileSep           = File.separatorChar;
-  private String[]            entrySeparator    = { ",", ":" };
   private String              classToFind;
   private String              libPath;
   private int                 numberOfJarsFound = 0;
@@ -43,13 +47,13 @@ public class WhenceJava
   // todo this is too long - break up!!
   public void run()
   {
-    outputLines = new ArrayList<String>();
+    outputLines = new ArrayList<>();
 
     boolean shouldExit = usage();
 
     if (!shouldExit)
     {
-      List<String> allList   = new ArrayList<String>();
+      List<String> allList   = new ArrayList<>();
       String       separator = null;
 
       if (libPath.contains(","))
@@ -129,7 +133,7 @@ public class WhenceJava
   /** Find all of matching classes in the class path elements. */
   private List<SearchResult> findClasses(String[] classPathElements, String classToFind)
   {
-    List<SearchResult> results = new ArrayList<SearchResult>();
+    List<SearchResult> results = new ArrayList<>();
 
     for (String classpathElement : classPathElements)
     {

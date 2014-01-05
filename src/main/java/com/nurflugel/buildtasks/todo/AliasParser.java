@@ -1,10 +1,16 @@
 package com.nurflugel.buildtasks.todo;
 
 import com.nurflugel.buildtasks.todo.exceptions.BadParsingException;
+import static com.nurflugel.buildtasks.todo.exceptions.BadParsingException.EXPECTED_FORMAT;
+
+import static org.apache.commons.lang.StringUtils.contains;
+import static org.apache.commons.lang.StringUtils.containsAny;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang.StringUtils.substringAfter;
+import static org.apache.commons.lang.StringUtils.substringBefore;
+
 import java.util.ArrayList;
 import java.util.List;
-import static com.nurflugel.buildtasks.todo.exceptions.BadParsingException.EXPECTED_FORMAT;
-import static org.apache.commons.lang.StringUtils.*;
 
 /** Parser to break up a name with aliases. dbulla(doug,dgb,douglas). */
 public class AliasParser
@@ -19,7 +25,7 @@ public class AliasParser
 
   public static List<String> getAliases(String textToParse) throws BadParsingException
   {
-    List<String> terms = new ArrayList<String>();
+    List<String> terms = new ArrayList<>();
 
     if (containsAny(textToParse, new char[] { OPEN_CURLY_BRACE, OPEN_SQUARE_BRACKET, CLOSE_CURLY_BRACE, CLOSE_SQUARE_BRACKET }))
     {
