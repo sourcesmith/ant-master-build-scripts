@@ -76,22 +76,22 @@ dependencies {
     velocity:       '1.4',
     version_tool:   '1.1.4_fixed'
   ]
-if(useJavaC2()){
-  ext.libraryVersions += [
-    forms_rt:       '11.0.3',
-    intellij:       '11.0.3',
-    javac2asm:      '3.3.1',
-    jdom:           '1.0',
-  ]
-  javac2 'com.intellij:javac2:'+                   libraryVersions.intellij,
+  if(useJavaC2()){
+    ext.libraryVersions += [
+      forms_rt:       '11.0.3',
+      intellij:       '11.0.3',
+      javac2asm:      '3.3.1',
+      jdom:           '1.0',
+    ]
+    javac2 'com.intellij:javac2:'+                   libraryVersions.intellij,
          'com.intellij:annotations:'+              libraryVersions.intellij,
          'asm:asm-commons:'+                       libraryVersions.javac2asm,
          'asm:asm-parent:'+                        libraryVersions.javac2asm,
          'org.jdom:jdom:'+                         libraryVersions.jdom
-}
-
-
-  versionUpdate 'com.ryangrier.ant:version_tool:'+ libraryVersions.version_tool
+  }
+  versionUpdate  'com.nurflugel:buildtasks:1.0.2'
+  versionUpdate  'org.apache.commons:commons-lang3:3.2'
+  versionUpdate  'org.apache:commons-io:2.2'
 
   testCompile  'com.google.inject:guice:'+         libraryVersions.guice
   testCompile  ('velocity:velocity:'+              libraryVersions.velocity){transtive=true}
@@ -102,13 +102,13 @@ if(useJavaC2()){
 
 }
 
-test {
-  useTestNG()
-  testLogging.showStandardStreams = true
-  options.suites("src/test/testng-config/testng.xml")
-  systemProperties "running.in.gradle": "yes"
-  workingDir = 'build/'
-}
+//test {
+//  useTestNG()
+//  testLogging.showStandardStreams = true
+//  options.suites("src/test/testng-config/testng.xml")
+//  systemProperties "running.in.gradle": "yes"
+//  workingDir = 'build/'
+//}
 
 //todo get version from specified file
 def titleForDocumentation = archivesBaseName + ' ' + '1.0.6'
@@ -118,7 +118,7 @@ def packageTitle = group
 
 // this will fail, but still do what it's supposed to
 javadoc {
-  final overviewFile = "${projectDir}/src/main/java/overview.html"
+  final overviewFile = "${project.projectDir}/src/main/java/overview.html"
   println "File to look for is "+ overviewFile
   
   if(new File(overviewFile).exists()){
@@ -149,8 +149,8 @@ task compileJava (overwrite: true) << {
   //make any source dirs needed for the output
   theDir.mkdirs()
 
-  mainSrcDir = "${projectDir}/src/main/java"
-  destDir = "${projectDir}/build/classes/main"
+  mainSrcDir = "${project.projectDir}/src/main/java"
+  destDir = "${project.projectDir}/build/classes/main"
   javaSoureCompatibility = sourceCompatibility
   javaTargetCompatibility = targetCompatibility
   optimize = "off"
@@ -273,7 +273,7 @@ private void updateVersion(String versionUpdateType)
   ant.versionupdate(srcdir: sourceSets.main.java.getSrcDirs().toArray()[0].getAbsolutePath(),
                     classname: versionClassName,
                     variablename: "VERSION",
-                    debug: "true",
+//                    debug: "true",
                     versionupdatetype: versionUpdateType
   )
 }
@@ -283,41 +283,18 @@ task wrapper(type: Wrapper) {
 }
 
 
-
-// Mac Release - from https://github.com/anathema/anathema/blob/master/build.gradle
-task compileLauncherMac(dependsOn: installApp) << {
-    ant.taskdef(
-            name: "bundleapp",
-            classname: "com.oracle.appbundler.AppBundlerTask",
-            classpath: configurations.bundleapp.asPath
-    )
-    mkdir("${buildDir}/dist")
-    ant.bundleapp(
-            outputdirectory: "${buildDir}/dist",
-            name: "Gradle Script Visualizer",
-            displayname: "Gradle Script Visualizer",
-            identifier: "com.nurflugel.gradlescriptvisualizer",
-            icon: "src/main/resources/gradleLogo_big.icns", //opt
-//            shortversion: "${versionString}", //opt
-//            signature: "????", //opt
-            //copyright: blah , //opt
-            applicationCategory: "public.app-category.utilities", //opt
-            mainclassname: "com.nurflugel.gradle.ui.Main"
-    ) {
-
-//        runtime(dir: "build/jre/mac64/jre${jreVersion}/Contents/Home") //opt - one way to get around who's got what - put the JRE into source control
-//        runtime(dir: "$java_home") //opt
-
-        classpath(dir: "${buildDir}/install/GradleScriptVisualizer/lib/")
-        classpath(file: "$javaHomeDir/jre/lib/jfxrt.jar")
-//        classpath(file: "src/main/resources/FobIcon.png")
-      
-      
-//        classpath(dir: "${buildDir}/dependencies/")
-//        classpath(dir: "${buildDir}/plugins/")
-
-//        option(value: "-splash:\$APP_ROOT/Contents/Java/FobIcon.png")// shows image, but app hangs with no errors
-        option(value: "-Dapple.laf-useScreenMenuBar=true")
-//        option(value: "-Ddefaultrepository=%USER_HOME%/Library/Application Support/Anathema")
-    }
+task findCurrentVersion()<<{
+   //todo throw exception if versionClassName isn't defined.
+  ant.taskdef(name: 'versionfinder', classname: 'com.ryangrier.ant.VersionFinder', classpath: configurations.versionUpdate.asPath)
+  ant.versionfinder(srcdir: sourceSets.main.java.getSrcDirs().toArray()[0].getAbsolutePath(),
+                    classname: versionClassName,
+                    variablename: "VERSION",
+                    propertyName: "theProperty"
+  )
+  project.ext.versionNumber = ant.properties.theProperty
+  println "the current version is " + project.ext.versionNumber
 }
+// make sure that we always go find the current version when compiling, so the jars will be numbered properly
+compileJava.dependsOn findCurrentVersion
+
+
